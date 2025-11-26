@@ -1,0 +1,274 @@
+import { Pet, Recipe } from "@/types";
+
+export const mockRecipes: Recipe[] = [
+  {
+    id: 1,
+    title: "닭가슴살 야채죽",
+    description: "소화가 잘 되고 영양가 높은 닭가슴살 야채죽입니다.",
+    image: "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0?auto=format&fit=crop&w=800&q=80",
+    cookTime: 30,
+    servings: 2,
+    difficulty: "쉬움",
+    rating: 4.8,
+    reviews: 124,
+    author: "멍쉐프",
+    category: "주식",
+    tags: ["영양식", "소화잘됨", "닭가슴살"],
+    ingredients: ["닭가슴살 100g", "당근 30g", "브로콜리 30g", "쌀 50g"],
+    instructions: [
+      "쌀을 물에 30분 정도 불려주세요.",
+      "닭가슴살은 삶아서 잘게 찢어주세요.",
+      "당근과 브로콜리는 잘게 다져주세요.",
+      "냄비에 쌀과 물을 넣고 끓이다가 야채와 닭가슴살을 넣고 푹 끓여주세요.",
+      "식혀서 급여해주세요."
+    ],
+    nutrition: {
+      calories: 150,
+      protein: 15,
+      fat: 2,
+      carbs: 20,
+      fiber: 3,
+      calcium: 20,
+      phosphorus: 100
+    },
+    rankingPosition: 1,
+    safetyScore: 95
+  },
+  {
+    id: 2,
+    title: "고구마 쿠키",
+    description: "강아지들이 좋아하는 달콤한 고구마로 만든 쿠키입니다.",
+    image: "https://images.unsplash.com/photo-1559563362-c667ba5f5480?auto=format&fit=crop&w=800&q=80",
+    cookTime: 40,
+    servings: 10,
+    difficulty: "보통",
+    rating: 4.9,
+    reviews: 85,
+    author: "댕댕맘",
+    category: "간식",
+    tags: ["수제간식", "고구마", "바삭바삭"],
+    ingredients: ["고구마 200g", "쌀가루 100g", "계란 노른자 1개"],
+    instructions: [
+      "고구마는 삶아서 으깨주세요.",
+      "으깬 고구마에 쌀가루와 계란 노른자를 넣고 반죽해주세요.",
+      "반죽을 밀대로 밀어 모양 틀로 찍어주세요.",
+      "오븐이나 에어프라이어에 180도로 15분 구워주세요."
+    ],
+    nutrition: {
+      calories: 80,
+      protein: 2,
+      fat: 1,
+      carbs: 18,
+      fiber: 2,
+      calcium: 10,
+      phosphorus: 30
+    },
+    rankingPosition: 2,
+    safetyScore: 92
+  },
+  {
+    id: 3,
+    title: "연어 덮밥",
+    description: "오메가-3가 풍부한 연어로 만든 특식 덮밥입니다.",
+    image: "https://images.unsplash.com/photo-1519708227418-c8fd9a3a27bd?auto=format&fit=crop&w=800&q=80",
+    cookTime: 25,
+    servings: 1,
+    difficulty: "보통",
+    rating: 4.7,
+    reviews: 56,
+    author: "피쉬러버",
+    category: "주식",
+    tags: ["피부모질", "연어", "특별식"],
+    ingredients: ["생연어 80g", "현미밥 50g", "파프리카 20g", "완두콩 10g"],
+    instructions: [
+      "연어는 가시를 제거하고 깍둑썰기 해주세요.",
+      "파프리카는 잘게 다져주세요.",
+      "팬에 연어와 야채를 볶아주세요.",
+      "현미밥 위에 볶은 재료를 올려주세요."
+    ],
+    nutrition: {
+      calories: 220,
+      protein: 18,
+      fat: 12,
+      carbs: 15,
+      fiber: 2,
+      calcium: 15,
+      phosphorus: 120
+    },
+    rankingPosition: 3,
+    safetyScore: 90
+  },
+  {
+    id: 4,
+    title: "바나나 케이크",
+    description: "특별한 날을 위한 강아지용 바나나 케이크입니다.",
+    image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80",
+    cookTime: 60,
+    servings: 4,
+    difficulty: "어려움",
+    rating: 4.6,
+    reviews: 42,
+    author: "베이킹왕",
+    category: "특별식",
+    tags: ["생일", "케이크", "바나나"],
+    ingredients: ["바나나 2개", "계란 2개", "쌀가루 150g", "코코넛오일 1스푼"],
+    instructions: [
+      "바나나를 으깨주세요.",
+      "계란과 코코넛오일을 넣고 섞어주세요.",
+      "쌀가루를 넣고 반죽해주세요.",
+      "틀에 담아 170도 오븐에서 30분 구워주세요."
+    ],
+    nutrition: {
+      calories: 180,
+      protein: 5,
+      fat: 8,
+      carbs: 25,
+      fiber: 3,
+      calcium: 12,
+      phosphorus: 40
+    },
+    rankingPosition: 4,
+    safetyScore: 88
+  },
+  {
+    id: 5,
+    title: "양배추 볶음밥",
+    description: "위장에 좋은 양배추를 듬뿍 넣은 볶음밥입니다.",
+    image: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=800&q=80",
+    cookTime: 20,
+    servings: 1,
+    difficulty: "쉬움",
+    rating: 4.4,
+    reviews: 30,
+    author: "건강지킴이",
+    category: "주식",
+    tags: ["위장건강", "양배추", "다이어트"],
+    ingredients: ["양배추 50g", "소고기 다짐육 50g", "밥 50g", "당근 10g"],
+    instructions: [
+      "양배추와 당근을 잘게 다져주세요.",
+      "소고기를 먼저 볶다가 야채를 넣고 볶아주세요.",
+      "밥을 넣고 잘 섞어주세요."
+    ],
+    nutrition: {
+      calories: 160,
+      protein: 12,
+      fat: 6,
+      carbs: 18,
+      fiber: 4,
+      calcium: 25,
+      phosphorus: 80
+    },
+    rankingPosition: 5,
+    safetyScore: 93
+  },
+  {
+    id: 6,
+    title: "단호박 스프",
+    description: "부드럽고 달콤한 단호박 스프, 입맛 없을 때 좋아요.",
+    image: "https://images.unsplash.com/photo-1476718406336-bb5a9690ee2b?auto=format&fit=crop&w=800&q=80",
+    cookTime: 25,
+    servings: 2,
+    difficulty: "쉬움",
+    rating: 4.5,
+    reviews: 38,
+    author: "스프매니아",
+    category: "건강식",
+    tags: ["보양식", "단호박", "부드러움"],
+    ingredients: ["단호박 150g", "락토프리 우유 100ml"],
+    instructions: [
+      "단호박을 쪄서 껍질을 벗기고 으깨주세요.",
+      "냄비에 으깬 단호박과 우유를 넣고 약불에서 끓여주세요.",
+      "농도가 적당해지면 불을 끄고 식혀주세요."
+    ],
+    nutrition: {
+      calories: 120,
+      protein: 4,
+      fat: 3,
+      carbs: 22,
+      fiber: 3,
+      calcium: 80,
+      phosphorus: 60
+    },
+    rankingPosition: 6,
+    safetyScore: 91
+  },
+  {
+    id: 7,
+    title: "오트밀 쿠키",
+    description: "식이섬유가 풍부한 오트밀로 만든 건강 간식입니다.",
+    image: "https://images.unsplash.com/photo-1618923850107-d1a234d7a73a?auto=format&fit=crop&w=800&q=80",
+    cookTime: 35,
+    servings: 8,
+    difficulty: "보통",
+    rating: 4.3,
+    reviews: 25,
+    author: "오트밀러",
+    category: "간식",
+    tags: ["식이섬유", "오트밀", "건강간식"],
+    ingredients: ["오트밀 100g", "바나나 1개", "땅콩버터(무설탕) 1스푼"],
+    instructions: [
+      "바나나를 으깨주세요.",
+      "오트밀과 땅콩버터를 넣고 섞어주세요.",
+      "반죽을 동그랗게 빚어 납작하게 눌러주세요.",
+      "180도 오븐에서 15분간 구워주세요."
+    ],
+    nutrition: {
+      calories: 90,
+      protein: 3,
+      fat: 4,
+      carbs: 12,
+      fiber: 3,
+      calcium: 5,
+      phosphorus: 45
+    },
+    rankingPosition: 7,
+    safetyScore: 89
+  },
+  {
+    id: 8,
+    title: "소고기 미트볼",
+    description: "영양 만점 소고기 미트볼, 특식으로 최고에요!",
+    image: "https://images.unsplash.com/photo-1529042410759-befb1204b468?auto=format&fit=crop&w=800&q=80",
+    cookTime: 45,
+    servings: 3,
+    difficulty: "보통",
+    rating: 4.8,
+    reviews: 92,
+    author: "미트러버",
+    category: "주식",
+    tags: ["소고기", "특식", "단백질"],
+    ingredients: ["소고기 다짐육 150g", "당근 20g", "시금치 20g", "계란 1개"],
+    instructions: [
+      "야채를 아주 잘게 다져주세요.",
+      "볼에 고기, 야채, 계란을 넣고 치대주세요.",
+      "동그랗게 모양을 만들어주세요.",
+      "찜기에 15분간 쪄주세요."
+    ],
+    nutrition: {
+      calories: 200,
+      protein: 22,
+      fat: 10,
+      carbs: 5,
+      fiber: 1,
+      calcium: 15,
+      phosphorus: 110
+    },
+    rankingPosition: 8,
+    safetyScore: 94
+  }
+];
+
+export const mockPets: Pet[] = [
+  {
+    id: 1,
+    name: "구름이",
+    breed: "말티즈",
+    age: 3,
+    weight: 3.2,
+    allergies: ["닭고기"],
+    healthConditions: ["슬개골 탈구"],
+    birthDate: "2021-05-15",
+    gender: "male",
+    isNeutered: true
+  }
+];
