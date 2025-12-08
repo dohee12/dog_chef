@@ -1,7 +1,10 @@
+import IngredientSelector from "@/components/IngredientSelector";
 import Colors from "@/constants/Colors";
 import { usePet } from "@/context/PetContext";
 import { Pet } from "@/types/Pet";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
+import * as ImagePicker from "expo-image-picker";
 import React, { useEffect, useState } from "react";
 import {
   Alert,
@@ -62,14 +65,15 @@ export default function PetFormScreen({ navigation, route }: any) {
     birthDate: "",
     gender: "male",
     isNeutered: false,
+    image: "",
   });
 
   const [weightInput, setWeightInput] = useState("");
   const [showBreedList, setShowBreedList] = useState(false);
   const [breedSearch, setBreedSearch] = useState("");
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [allergyInput, setAllergyInput] = useState("");
   const [healthInput, setHealthInput] = useState("");
+  const [showAllergySheet, setShowAllergySheet] = useState(false);
 
   useEffect(() => {
     if (initialData) {
@@ -100,14 +104,26 @@ export default function PetFormScreen({ navigation, route }: any) {
 
   const filteredBreeds = breedList.filter((b) => b.includes(breedSearch));
 
-  const handleAddAllergy = () => {
-    if (allergyInput.trim()) {
-      setFormData({
-        ...formData,
-        allergies: [...formData.allergies, allergyInput.trim()],
-      });
-      setAllergyInput("");
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [1, 1],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setFormData({ ...formData, image: result.assets[0].uri });
     }
+  };
+
+  const handleToggleAllergy = (allergy: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      allergies: prev.allergies.includes(allergy)
+        ? prev.allergies.filter((a) => a !== allergy)
+        : [...prev.allergies, allergy],
+    }));
   };
 
   const handleAddHealth = () => {
@@ -158,21 +174,33 @@ export default function PetFormScreen({ navigation, route }: any) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>
-          {initialData ? "반려견 수정" : "반려견 등록"}
-        </Text>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="close" size={24} color="#111827" />
-        </TouchableOpacity>
-      </View>
-
+    <SafeAreaView style={styles.container} edges={["bottom", "left", "right"]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.flex}
       >
         <ScrollView style={styles.content}>
+          {/* Profile Image */}
+          <View style={styles.imageSection}>
+            <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+              {formData.image ? (
+                <Image
+                  source={{ uri: formData.image }}
+                  style={styles.profileImage}
+                  contentFit="cover"
+                />
+              ) : (
+                <View style={styles.imagePlaceholder}>
+                  <Ionicons name="camera" size={32} color={Colors.textLight} />
+                  <Text style={styles.imagePlaceholderText}>사진 추가</Text>
+                </View>
+              )}
+              <View style={styles.editIconBadge}>
+                <Ionicons name="pencil" size={12} color="white" />
+              </View>
+            </TouchableOpacity>
+          </View>
+
           {/* Name */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>이름 *</Text>
@@ -356,22 +384,15 @@ export default function PetFormScreen({ navigation, route }: any) {
 
           {/* Allergies */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>알러지</Text>
-            <View style={styles.tagInputContainer}>
-              <TextInput
-                style={styles.tagInput}
-                placeholder="예: 닭고기"
-                value={allergyInput}
-                onChangeText={setAllergyInput}
-                onSubmitEditing={handleAddAllergy}
-              />
-              <TouchableOpacity
-                style={styles.addTagButton}
-                onPress={handleAddAllergy}
-              >
-                <Ionicons name="add" size={20} color="white" />
-              </TouchableOpacity>
-            </View>
+            <Text style={styles.label}>알러지 (재료 선택)</Text>
+            <TouchableOpacity
+              style={styles.selectButton}
+              onPress={() => setShowAllergySheet(true)}
+            >
+              <Text style={styles.selectButtonText}>알러지 재료 선택하기</Text>
+              <Ionicons name="add-circle-outline" size={20} color={Colors.primary} />
+            </TouchableOpacity>
+
             <View style={styles.tagContainer}>
               {formData.allergies.map((allergy, index) => (
                 <View key={index} style={[styles.tagChip, styles.allergyChip]}>
@@ -425,6 +446,15 @@ export default function PetFormScreen({ navigation, route }: any) {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      <IngredientSelector
+        visible={showAllergySheet}
+        onClose={() => setShowAllergySheet(false)}
+        selectedIngredients={formData.allergies}
+        onToggle={handleToggleAllergy}
+        title="알러지 선택"
+        subtitle="반려견이 알러지가 있는 재료를 선택하세요"
+      />
     </SafeAreaView>
   );
 }
@@ -437,22 +467,53 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.textDark,
-  },
   content: {
     flex: 1,
     padding: 20,
+    paddingTop: 10,
+  },
+  imageSection: {
+    alignItems: "center",
+    marginBottom: 24,
+  },
+  imageButton: {
+    position: "relative",
+  },
+  profileImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+  },
+  imagePlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: Colors.lightBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: Colors.borderLight,
+    borderStyle: "dashed",
+  },
+  imagePlaceholderText: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginTop: 4,
+  },
+  editIconBadge: {
+    position: "absolute",
+    bottom: 0,
+    right: 0,
+    backgroundColor: Colors.primary,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 2,
+    borderColor: "white",
   },
   formGroup: {
     marginBottom: 20,
@@ -537,6 +598,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 8,
+    marginTop: 8,
   },
   tagChip: {
     flexDirection: "row",
@@ -581,6 +643,22 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+  },
+
+  // Select Button
+  selectButton: {
+    backgroundColor: Colors.lightBackground,
+    borderRadius: 8,
+    padding: 12,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+  },
+  selectButtonText: {
+    fontSize: 14,
+    color: Colors.text,
   },
 
   // Modal

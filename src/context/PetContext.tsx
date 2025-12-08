@@ -8,6 +8,7 @@ interface PetContextType {
   addPet: (pet: Omit<Pet, "id">) => void;
   updatePet: (pet: Pet) => void;
   deletePet: (id: number) => void;
+  loadPets: () => Promise<void>;
 }
 
 const PetContext = createContext<PetContextType>({
@@ -15,6 +16,7 @@ const PetContext = createContext<PetContextType>({
   addPet: () => {},
   updatePet: () => {},
   deletePet: () => {},
+  loadPets: async () => {},
 });
 
 export const PetProvider = ({ children }: { children: React.ReactNode }) => {
@@ -26,19 +28,19 @@ export const PetProvider = ({ children }: { children: React.ReactNode }) => {
 
   const loadPets = async () => {
     try {
+      // Force update with mockData for development
+      setPets(mockPets); 
+      await AsyncStorage.setItem("pets", JSON.stringify(mockPets));
+
+      /*
       const storedPets = await AsyncStorage.getItem("pets");
       if (storedPets) {
         setPets(JSON.parse(storedPets));
       } else {
-        // For demo purposes, load mock data if empty, or could be empty []
-        // Using mockPets as per requirement implies starting with some data maybe?
-        // Actually requirement 6.4 says "Empty state" if no pets. 
-        // But for easy testing I'll leave it to check AsyncStorage. 
-        // If I want to show empty state initially, I should just use [] if null.
-        // However, user provided mockPets. I'll use mockPets for now as initial data.
         setPets(mockPets); 
         await AsyncStorage.setItem("pets", JSON.stringify(mockPets));
       }
+      */
     } catch (error) {
       console.error("Failed to load pets", error);
     }
@@ -73,7 +75,7 @@ export const PetProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <PetContext.Provider value={{ pets, addPet, updatePet, deletePet }}>
+    <PetContext.Provider value={{ pets, addPet, updatePet, deletePet, loadPets }}>
       {children}
     </PetContext.Provider>
   );

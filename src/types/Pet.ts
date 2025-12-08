@@ -6,7 +6,7 @@ export interface Pet {
   weight: number;
   allergies: string[];
   healthConditions: string[];
-  profileImage?: string;
+  image?: string;
   birthDate: string;
   gender: 'male' | 'female';
   isNeutered: boolean;

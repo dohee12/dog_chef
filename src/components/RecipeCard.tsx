@@ -1,9 +1,9 @@
 import Colors from "@/constants/Colors";
 import { Recipe } from "@/types/Recipe";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React from "react";
 import {
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -130,6 +130,8 @@ export default function RecipeCard({
   hasAllergy,
   style,
 }: Props) {
+  const [hasError, setHasError] = React.useState(false);
+
   return (
     <TouchableOpacity
       style={[styles.card, style]}
@@ -138,10 +140,35 @@ export default function RecipeCard({
     >
       <View style={styles.imageContainer}>
         <Image
-          source={{ uri: recipe.image }}
+          source={{
+            uri:
+              !hasError && recipe.image
+                ? recipe.image
+                : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+          }}
           style={styles.image}
-          resizeMode="cover"
+          contentFit="cover"
+          transition={200}
+          onError={() => setHasError(true)}
         />
+
+        {hasError && (
+          <View
+            style={{
+              position: "absolute",
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: "#f3f4f6",
+              alignItems: "center",
+              justifyContent: "center",
+              zIndex: -1,
+            }}
+          >
+            <Ionicons name="image-outline" size={48} color="#d1d5db" />
+          </View>
+        )}
 
         {hasAllergy && (
           <View style={styles.allergyBadge}>

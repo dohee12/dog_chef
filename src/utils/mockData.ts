@@ -5,7 +5,8 @@ export const mockRecipes: Recipe[] = [
     id: 1,
     title: "닭가슴살 야채죽",
     description: "소화가 잘 되고 영양가 높은 닭가슴살 야채죽입니다.",
-    image: "https://images.unsplash.com/photo-1564834724105-918b73d1b9e0?auto=format&fit=crop&w=800&q=80",
+    image:
+      "https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?q=80&w=800&auto=format&fit=crop", // Chicken Porridge/Soup
     cookTime: 30,
     servings: 2,
     difficulty: "쉬움",
@@ -20,7 +21,7 @@ export const mockRecipes: Recipe[] = [
       "닭가슴살은 삶아서 잘게 찢어주세요.",
       "당근과 브로콜리는 잘게 다져주세요.",
       "냄비에 쌀과 물을 넣고 끓이다가 야채와 닭가슴살을 넣고 푹 끓여주세요.",
-      "식혀서 급여해주세요."
+      "식혀서 급여해주세요.",
     ],
     nutrition: {
       calories: 150,
@@ -29,16 +30,17 @@ export const mockRecipes: Recipe[] = [
       carbs: 20,
       fiber: 3,
       calcium: 20,
-      phosphorus: 100
+      phosphorus: 100,
     },
     rankingPosition: 1,
-    safetyScore: 95
+    safetyScore: 95,
   },
   {
     id: 2,
     title: "고구마 쿠키",
     description: "강아지들이 좋아하는 달콤한 고구마로 만든 쿠키입니다.",
-    image: "https://images.unsplash.com/photo-1559563362-c667ba5f5480?auto=format&fit=crop&w=800&q=80",
+    image:
+      "https://images.unsplash.com/photo-1505935428862-770b6f24f629?q=80&w=800&auto=format&fit=crop", // Cookies with sweet potato vibes
     cookTime: 40,
     servings: 10,
     difficulty: "보통",
@@ -52,7 +54,7 @@ export const mockRecipes: Recipe[] = [
       "고구마는 삶아서 으깨주세요.",
       "으깬 고구마에 쌀가루와 계란 노른자를 넣고 반죽해주세요.",
       "반죽을 밀대로 밀어 모양 틀로 찍어주세요.",
-      "오븐이나 에어프라이어에 180도로 15분 구워주세요."
+      "오븐이나 에어프라이어에 180도로 15분 구워주세요.",
     ],
     nutrition: {
       calories: 80,
@@ -61,16 +63,17 @@ export const mockRecipes: Recipe[] = [
       carbs: 18,
       fiber: 2,
       calcium: 10,
-      phosphorus: 30
+      phosphorus: 30,
     },
     rankingPosition: 2,
-    safetyScore: 92
+    safetyScore: 92,
   },
   {
     id: 3,
     title: "연어 덮밥",
     description: "오메가-3가 풍부한 연어로 만든 특식 덮밥입니다.",
-    image: "https://images.unsplash.com/photo-1519708227418-c8fd9a3a27bd?auto=format&fit=crop&w=800&q=80",
+    image:
+      "https://images.unsplash.com/photo-1604908177453-7462950a6a3b?q=80&w=800&auto=format&fit=crop", // Salmon bowl distinct
     cookTime: 25,
     servings: 1,
     difficulty: "보통",
@@ -84,7 +87,7 @@ export const mockRecipes: Recipe[] = [
       "연어는 가시를 제거하고 깍둑썰기 해주세요.",
       "파프리카는 잘게 다져주세요.",
       "팬에 연어와 야채를 볶아주세요.",
-      "현미밥 위에 볶은 재료를 올려주세요."
+      "현미밥 위에 볶은 재료를 올려주세요.",
     ],
     nutrition: {
       calories: 220,
@@ -93,16 +96,17 @@ export const mockRecipes: Recipe[] = [
       carbs: 15,
       fiber: 2,
       calcium: 15,
-      phosphorus: 120
+      phosphorus: 120,
     },
     rankingPosition: 3,
-    safetyScore: 90
+    safetyScore: 90,
   },
   {
     id: 4,
     title: "바나나 케이크",
     description: "특별한 날을 위한 강아지용 바나나 케이크입니다.",
-    image: "https://images.unsplash.com/photo-1578985545062-69928b1d9587?auto=format&fit=crop&w=800&q=80",
+    image:
+      "https://images.unsplash.com/photo-1571115177098-24ec42ed204d?q=80&w=800&auto=format&fit=crop", // Banana Cake
     cookTime: 60,
     servings: 4,
     difficulty: "어려움",
@@ -116,7 +120,7 @@ export const mockRecipes: Recipe[] = [
       "바나나를 으깨주세요.",
       "계란과 코코넛오일을 넣고 섞어주세요.",
       "쌀가루를 넣고 반죽해주세요.",
-      "틀에 담아 170도 오븐에서 30분 구워주세요."
+      "틀에 담아 170도 오븐에서 30분 구워주세요.",
     ],
     nutrition: {
       calories: 180,
@@ -125,16 +129,17 @@ export const mockRecipes: Recipe[] = [
       carbs: 25,
       fiber: 3,
       calcium: 12,
-      phosphorus: 40
+      phosphorus: 40,
     },
     rankingPosition: 4,
-    safetyScore: 88
+    safetyScore: 88,
   },
   {
     id: 5,
     title: "양배추 볶음밥",
     description: "위장에 좋은 양배추를 듬뿍 넣은 볶음밥입니다.",
-    image: "https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=800&q=80",
+    image:
+      "https://images.unsplash.com/photo-1603133872878-684f108fd03d?q=80&w=800&auto=format&fit=crop", // Fried Rice
     cookTime: 20,
     servings: 1,
     difficulty: "쉬움",
@@ -147,7 +152,7 @@ export const mockRecipes: Recipe[] = [
     instructions: [
       "양배추와 당근을 잘게 다져주세요.",
       "소고기를 먼저 볶다가 야채를 넣고 볶아주세요.",
-      "밥을 넣고 잘 섞어주세요."
+      "밥을 넣고 잘 섞어주세요.",
     ],
     nutrition: {
       calories: 160,
@@ -156,16 +161,17 @@ export const mockRecipes: Recipe[] = [
       carbs: 18,
       fiber: 4,
       calcium: 25,
-      phosphorus: 80
+      phosphorus: 80,
     },
     rankingPosition: 5,
-    safetyScore: 93
+    safetyScore: 93,
   },
   {
     id: 6,
     title: "단호박 스프",
     description: "부드럽고 달콤한 단호박 스프, 입맛 없을 때 좋아요.",
-    image: "https://images.unsplash.com/photo-1476718406336-bb5a9690ee2b?auto=format&fit=crop&w=800&q=80",
+    image:
+      "https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?q=80&w=800&auto=format&fit=crop", // Pumpkin soup distinct
     cookTime: 25,
     servings: 2,
     difficulty: "쉬움",
@@ -178,7 +184,7 @@ export const mockRecipes: Recipe[] = [
     instructions: [
       "단호박을 쪄서 껍질을 벗기고 으깨주세요.",
       "냄비에 으깬 단호박과 우유를 넣고 약불에서 끓여주세요.",
-      "농도가 적당해지면 불을 끄고 식혀주세요."
+      "농도가 적당해지면 불을 끄고 식혀주세요.",
     ],
     nutrition: {
       calories: 120,
@@ -187,16 +193,17 @@ export const mockRecipes: Recipe[] = [
       carbs: 22,
       fiber: 3,
       calcium: 80,
-      phosphorus: 60
+      phosphorus: 60,
     },
     rankingPosition: 6,
-    safetyScore: 91
+    safetyScore: 91,
   },
   {
     id: 7,
     title: "오트밀 쿠키",
     description: "식이섬유가 풍부한 오트밀로 만든 건강 간식입니다.",
-    image: "https://images.unsplash.com/photo-1618923850107-d1a234d7a73a?auto=format&fit=crop&w=800&q=80",
+    image:
+      "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=800&auto=format&fit=crop", // Oatmeal Cookies new
     cookTime: 35,
     servings: 8,
     difficulty: "보통",
@@ -210,7 +217,7 @@ export const mockRecipes: Recipe[] = [
       "바나나를 으깨주세요.",
       "오트밀과 땅콩버터를 넣고 섞어주세요.",
       "반죽을 동그랗게 빚어 납작하게 눌러주세요.",
-      "180도 오븐에서 15분간 구워주세요."
+      "180도 오븐에서 15분간 구워주세요.",
     ],
     nutrition: {
       calories: 90,
@@ -219,16 +226,17 @@ export const mockRecipes: Recipe[] = [
       carbs: 12,
       fiber: 3,
       calcium: 5,
-      phosphorus: 45
+      phosphorus: 45,
     },
     rankingPosition: 7,
-    safetyScore: 89
+    safetyScore: 89,
   },
   {
     id: 8,
     title: "소고기 미트볼",
     description: "영양 만점 소고기 미트볼, 특식으로 최고에요!",
-    image: "https://images.unsplash.com/photo-1529042410759-befb1204b468?auto=format&fit=crop&w=800&q=80",
+    image:
+      "https://images.unsplash.com/photo-1529042410759-befb1204b468?q=80&w=800&auto=format&fit=crop", // Meatballs
     cookTime: 45,
     servings: 3,
     difficulty: "보통",
@@ -242,7 +250,7 @@ export const mockRecipes: Recipe[] = [
       "야채를 아주 잘게 다져주세요.",
       "볼에 고기, 야채, 계란을 넣고 치대주세요.",
       "동그랗게 모양을 만들어주세요.",
-      "찜기에 15분간 쪄주세요."
+      "찜기에 15분간 쪄주세요.",
     ],
     nutrition: {
       calories: 200,
@@ -251,11 +259,11 @@ export const mockRecipes: Recipe[] = [
       carbs: 5,
       fiber: 1,
       calcium: 15,
-      phosphorus: 110
+      phosphorus: 110,
     },
     rankingPosition: 8,
-    safetyScore: 94
-  }
+    safetyScore: 94,
+  },
 ];
 
 export const mockPets: Pet[] = [
@@ -265,10 +273,12 @@ export const mockPets: Pet[] = [
     breed: "말티즈",
     age: 3,
     weight: 3.2,
-    allergies: ["닭고기"],
+    allergies: ["닭가슴살"],
     healthConditions: ["슬개골 탈구"],
     birthDate: "2021-05-15",
     gender: "male",
-    isNeutered: true
-  }
+    isNeutered: true,
+    image:
+      "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?q=80&w=400&auto=format&fit=crop",
+  },
 ];

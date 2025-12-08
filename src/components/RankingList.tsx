@@ -2,8 +2,9 @@ import Colors from "@/constants/Colors";
 import { Pet } from "@/types/Pet";
 import { Recipe } from "@/types/Recipe";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface Props {
   recipes: Recipe[];
@@ -75,43 +76,74 @@ const styles = StyleSheet.create({
   },
 });
 
+const RankingItem = ({
+  recipe,
+  index,
+  onPress,
+  onLike,
+}: {
+  recipe: Recipe;
+  index: number;
+  onPress: () => void;
+  onLike: () => void;
+}) => {
+  const [hasError, setHasError] = React.useState(false);
+
+  return (
+    <TouchableOpacity style={styles.item} onPress={onPress}>
+      <Text style={styles.rank}>{index + 1}</Text>
+      <Image
+        source={{
+          uri:
+            !hasError && recipe.image
+              ? recipe.image
+              : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+        }}
+        style={styles.image}
+        contentFit="cover"
+        transition={200}
+        onError={() => setHasError(true)}
+      />
+      <View style={styles.content}>
+        <Text style={styles.recipeTitle} numberOfLines={1}>
+          {recipe.title}
+        </Text>
+        <View style={styles.stats}>
+          <View style={styles.statItem}>
+            <Ionicons name="star" size={12} color="#eab308" />
+            <Text style={styles.statText}>{recipe.rating.toFixed(1)}</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Ionicons name="heart" size={12} color={Colors.primary} />
+            <Text style={styles.statText}>
+              {recipe.isLiked ? "찜됨" : "찜하기"}
+            </Text>
+          </View>
+        </View>
+      </View>
+      <TouchableOpacity onPress={onLike}>
+        <Ionicons
+          name={recipe.isLiked ? "heart" : "heart-outline"}
+          size={20}
+          color={recipe.isLiked ? Colors.primary : Colors.textLight}
+        />
+      </TouchableOpacity>
+    </TouchableOpacity>
+  );
+};
+
 export default function RankingList({ recipes, onRecipePress, onLike }: Props) {
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>레시피 랭킹</Text>
+      <Text style={styles.title}>인기 레시피</Text>
       {recipes.map((recipe, index) => (
-        <TouchableOpacity
+        <RankingItem
           key={recipe.id}
-          style={styles.item}
+          recipe={recipe}
+          index={index}
           onPress={() => onRecipePress(recipe)}
-        >
-          <Text style={styles.rank}>{index + 1}</Text>
-          <Image source={{ uri: recipe.image }} style={styles.image} />
-          <View style={styles.content}>
-            <Text style={styles.recipeTitle} numberOfLines={1}>
-              {recipe.title}
-            </Text>
-            <View style={styles.stats}>
-              <View style={styles.statItem}>
-                <Ionicons name="star" size={12} color="#eab308" />
-                <Text style={styles.statText}>{recipe.rating.toFixed(1)}</Text>
-              </View>
-              <View style={styles.statItem}>
-                <Ionicons name="heart" size={12} color={Colors.primary} />
-                <Text style={styles.statText}>
-                  {recipe.isLiked ? "찜됨" : "찜하기"}
-                </Text>
-              </View>
-            </View>
-          </View>
-          <TouchableOpacity onPress={() => onLike(recipe.id)}>
-            <Ionicons
-              name={recipe.isLiked ? "heart" : "heart-outline"}
-              size={20}
-              color={recipe.isLiked ? Colors.primary : Colors.textLight}
-            />
-          </TouchableOpacity>
-        </TouchableOpacity>
+          onLike={() => onLike(recipe.id)}
+        />
       ))}
     </View>
   );

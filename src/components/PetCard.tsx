@@ -1,8 +1,9 @@
 import Colors from "@/constants/Colors";
 import { Pet } from "@/types/Pet";
 import { Ionicons } from "@expo/vector-icons";
+import { Image } from "expo-image";
 import React from "react";
-import { Image, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 interface Props {
   pet: Pet;
@@ -79,8 +80,12 @@ export default function PetCard({ pet, onEdit, onDelete }: Props) {
   return (
     <View style={styles.card}>
       <View style={styles.imageContainer}>
-        {pet.profileImage ? (
-          <Image source={{ uri: pet.profileImage }} style={styles.petImage} />
+        {pet.image ? (
+          <Image
+            source={{ uri: pet.image }}
+            style={styles.petImage}
+            contentFit="cover"
+          />
         ) : (
           <Ionicons name="paw" size={30} color={Colors.textLight} />
         )}

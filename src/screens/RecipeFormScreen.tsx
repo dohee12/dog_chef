@@ -1,9 +1,11 @@
 import Colors from "@/constants/Colors";
 import { useRecipe } from "@/context/RecipeContext";
 import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import {
   Alert,
+  Image,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
@@ -34,6 +36,19 @@ export default function RecipeFormScreen({ navigation }: any) {
     ingredients: [] as string[],
     instructions: [] as string[],
   });
+
+  const pickImage = async () => {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+    });
+
+    if (!result.canceled) {
+      setFormData({ ...formData, image: result.assets[0].uri });
+    }
+  };
 
   const handleAddTag = () => {
     if (tagInput.trim()) {
@@ -104,7 +119,7 @@ export default function RecipeFormScreen({ navigation }: any) {
       author: formData.author || "익명",
       image:
         formData.image ||
-        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80", // Fallback image
+        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80", // Default food image
       reviews: 0,
       rating: 0,
       reviewList: [],
@@ -123,19 +138,16 @@ export default function RecipeFormScreen({ navigation }: any) {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>레시피 등록</Text>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="close" size={24} color="#111827" />
-        </TouchableOpacity>
-      </View>
-
+    <SafeAreaView style={styles.container} edges={["bottom", "left", "right"]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.flex}
       >
-        <ScrollView style={styles.content}>
+        <ScrollView
+          style={styles.content}
+          decelerationRate="fast"
+          showsVerticalScrollIndicator={false}
+        >
           {/* Title */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>레시피 제목 *</Text>
@@ -164,10 +176,40 @@ export default function RecipeFormScreen({ navigation }: any) {
 
           {/* Image */}
           <View style={styles.formGroup}>
-            <Text style={styles.label}>이미지 URL</Text>
+            <Text style={styles.label}>대표 이미지</Text>
+
+            {formData.image ? (
+              <View style={styles.imagePreviewContainer}>
+                <Image
+                  source={{ uri: formData.image }}
+                  style={styles.imagePreview}
+                />
+                <TouchableOpacity
+                  style={styles.changeImageButton}
+                  onPress={pickImage}
+                >
+                  <Text style={styles.changeImageText}>변경</Text>
+                </TouchableOpacity>
+              </View>
+            ) : (
+              <TouchableOpacity
+                style={styles.imageSelectButton}
+                onPress={pickImage}
+              >
+                <Ionicons
+                  name="image-outline"
+                  size={32}
+                  color={Colors.textLight}
+                />
+                <Text style={styles.imageSelectText}>갤러리에서 사진 선택</Text>
+              </TouchableOpacity>
+            )}
+
+            <Text style={styles.orText}>또는 URL 입력</Text>
+
             <TextInput
               style={styles.input}
-              placeholder="Unsplash 이미지 URL (비워두면 기본값)"
+              placeholder="이미지 URL 직접 입력"
               value={formData.image}
               onChangeText={(text) => setFormData({ ...formData, image: text })}
             />
@@ -388,22 +430,10 @@ const styles = StyleSheet.create({
   flex: {
     flex: 1,
   },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.textDark,
-  },
   content: {
     flex: 1,
     padding: 20,
+    paddingTop: 10,
   },
   formGroup: {
     marginBottom: 20,
@@ -571,5 +601,54 @@ const styles = StyleSheet.create({
     color: "white",
     fontWeight: "bold",
     fontSize: 16,
+  },
+
+  // Image Picker Styles
+  imagePreviewContainer: {
+    marginBottom: 12,
+    position: "relative",
+  },
+  imagePreview: {
+    width: "100%",
+    height: 200,
+    borderRadius: 8,
+    backgroundColor: "#f3f4f6",
+  },
+  changeImageButton: {
+    position: "absolute",
+    bottom: 12,
+    right: 12,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  changeImageText: {
+    color: "white",
+    fontSize: 12,
+    fontWeight: "bold",
+  },
+  imageSelectButton: {
+    width: "100%",
+    height: 120,
+    backgroundColor: "#f3f4f6",
+    borderRadius: 8,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#e5e7eb",
+    borderStyle: "dashed",
+  },
+  imageSelectText: {
+    marginTop: 8,
+    color: Colors.textLight,
+    fontSize: 14,
+  },
+  orText: {
+    textAlign: "center",
+    color: Colors.textLight,
+    fontSize: 12,
+    marginBottom: 8,
   },
 });

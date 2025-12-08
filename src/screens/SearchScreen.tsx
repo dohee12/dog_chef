@@ -1,3 +1,4 @@
+import IngredientSelector from "@/components/IngredientSelector";
 import RecipeCard from "@/components/RecipeCard";
 import Colors from "@/constants/Colors";
 import { useRecipe } from "@/context/RecipeContext";
@@ -6,7 +7,6 @@ import { Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -49,20 +49,6 @@ const categories = [
     bgColor: "#f3e8ff",
     color: "#7e22ce",
   },
-];
-const popularIngredients = [
-  "닭가슴살",
-  "고구마",
-  "연어",
-  "바나나",
-  "당근",
-  "브로콜리",
-  "현미",
-  "계란",
-  "요구르트",
-  "단호박",
-  "양배추",
-  "시금치",
 ];
 
 export default function SearchScreen({ navigation }: any) {
@@ -138,7 +124,7 @@ export default function SearchScreen({ navigation }: any) {
 
       // Ingredients
       if (selectedIngredients.length > 0) {
-        const hasIngredient = selectedIngredients.every((ing) =>
+        const hasIngredient = selectedIngredients.some((ing) =>
           recipe.ingredients.some((ri) => ri.includes(ing))
         );
         if (!hasIngredient) return false;
@@ -370,60 +356,14 @@ export default function SearchScreen({ navigation }: any) {
         <View style={{ height: 80 }} />
       </ScrollView>
 
-      {/* Ingredient Filter Modal (Bottom Sheet replacement) */}
-      <Modal
+      <IngredientSelector
         visible={showIngredientSheet}
-        animationType="slide"
-        transparent={true}
-        onRequestClose={() => setShowIngredientSheet(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.sheetContent}>
-            <View style={styles.sheetHeader}>
-              <View>
-                <Text style={styles.sheetTitle}>재료 필터</Text>
-                <Text style={styles.sheetSubtitle}>
-                  원하는 재료를 선택하여 레시피를 필터링하세요
-                </Text>
-              </View>
-              <TouchableOpacity onPress={() => setShowIngredientSheet(false)}>
-                <Ionicons name="close" size={24} color={Colors.text} />
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.ingredientContainer}>
-              {popularIngredients.map((ingredient, index) => (
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.ingredientTag,
-                    selectedIngredients.includes(ingredient) &&
-                      styles.ingredientTagActive,
-                  ]}
-                  onPress={() => toggleIngredient(ingredient)}
-                >
-                  <Text
-                    style={[
-                      styles.ingredientTagText,
-                      selectedIngredients.includes(ingredient) &&
-                        styles.ingredientTagTextActive,
-                    ]}
-                  >
-                    {ingredient}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-
-            <TouchableOpacity
-              style={styles.closeSheetButton}
-              onPress={() => setShowIngredientSheet(false)}
-            >
-              <Text style={styles.closeSheetButtonText}>완료</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
+        onClose={() => setShowIngredientSheet(false)}
+        selectedIngredients={selectedIngredients}
+        onToggle={toggleIngredient}
+        title="재료 필터"
+        subtitle="원하는 재료를 선택하여 레시피를 필터링하세요"
+      />
     </SafeAreaView>
   );
 }
@@ -618,71 +558,5 @@ const styles = StyleSheet.create({
   },
   emptyStateText: {
     color: Colors.textLight,
-  },
-
-  // Modal styles
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(0,0,0,0.5)",
-    justifyContent: "flex-end",
-  },
-  sheetContent: {
-    backgroundColor: "white",
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    padding: 20,
-    maxHeight: "80%",
-  },
-  sheetHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 20,
-  },
-  sheetTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 4,
-  },
-  sheetSubtitle: {
-    color: Colors.textLight,
-    fontSize: 14,
-  },
-  ingredientContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-    marginBottom: 24,
-  },
-  ingredientTag: {
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 20,
-    backgroundColor: "#f3f4f6",
-    borderWidth: 1,
-    borderColor: "transparent",
-  },
-  ingredientTagActive: {
-    backgroundColor: "#fff7ed",
-    borderColor: Colors.primary,
-  },
-  ingredientTagText: {
-    fontSize: 14,
-    color: Colors.text,
-  },
-  ingredientTagTextActive: {
-    color: Colors.primary,
-    fontWeight: "bold",
-  },
-  closeSheetButton: {
-    backgroundColor: Colors.primary,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: "center",
-  },
-  closeSheetButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
   },
 });

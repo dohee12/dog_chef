@@ -5,6 +5,7 @@ import { usePet } from "@/context/PetContext";
 import { useRecipe } from "@/context/RecipeContext";
 import { Recipe } from "@/types/Recipe";
 import { getAllergicIngredients } from "@/utils/allergyMappings";
+import { getDailyNeeds } from "@/utils/nutritionCalculator";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
@@ -35,19 +36,25 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
   );
   const hasAllergy = allergicIngredients.length > 0;
 
-  return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={24} color="#111827" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          레시피 상세 - {recipe.title}
-        </Text>
-        <View style={{ width: 24 }} />
-      </View>
+  // Calculate nutrition needs if pets exist (using first pet for demo)
+  const targetPet = pets.length > 0 ? pets[0] : null;
+  const dailyNeeds = targetPet
+    ? getDailyNeeds(targetPet.weight, targetPet.isNeutered, targetPet.age)
+    : null;
 
+  const getPercentage = (value: number, total: number) => {
+    if (!total) return 0;
+    return Math.round((value / total) * 100);
+  };
+
+  React.useLayoutEffect(() => {
+    navigation.setOptions({
+      title: `레시피 상세 - ${recipe.title}`,
+    });
+  }, [navigation, recipe]);
+
+  return (
+    <SafeAreaView style={styles.container} edges={["bottom", "left", "right"]}>
       <ScrollView style={styles.content}>
         {/* Image */}
         <View style={styles.imageContainer}>
@@ -207,6 +214,17 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
           {activeTab === "nutrition" ? (
             recipe.nutrition ? (
               <View style={styles.nutritionGrid}>
+                {dailyNeeds && (
+                  <View style={styles.nutritionSummary}>
+                    <Text style={styles.summaryTitle}>
+                      {targetPet?.name}의 하루 권장량 대비
+                    </Text>
+                    <Text style={styles.summarySubtitle}>
+                      (DER: {dailyNeeds.dailyCalories}kcal 기준)
+                    </Text>
+                  </View>
+                )}
+
                 <View
                   style={[styles.nutritionCard, { backgroundColor: "#dbeafe" }]}
                 >
@@ -216,6 +234,15 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
                   <Text style={[styles.nutritionLabel, { color: "#1e40af" }]}>
                     칼로리 (kcal)
                   </Text>
+                  {dailyNeeds && (
+                    <Text style={styles.percentageText}>
+                      {getPercentage(
+                        recipe.nutrition.calories,
+                        dailyNeeds.dailyCalories
+                      )}
+                      %
+                    </Text>
+                  )}
                 </View>
                 <View
                   style={[styles.nutritionCard, { backgroundColor: "#dcfce7" }]}
@@ -274,21 +301,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "white",
-  },
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    padding: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
-  },
-  headerTitle: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: Colors.textDark,
-    flex: 1,
-    textAlign: "center",
   },
   content: {
     flex: 1,
@@ -509,6 +521,27 @@ const styles = StyleSheet.create({
   },
   nutritionLabel: {
     fontSize: 12,
+  },
+  percentageText: {
+    fontSize: 10,
+    color: Colors.textLight,
+    marginTop: 4,
+    fontWeight: "600",
+  },
+  nutritionSummary: {
+    width: "100%",
+    marginBottom: 16,
+    alignItems: "center",
+  },
+  summaryTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    color: Colors.textDark,
+  },
+  summarySubtitle: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginTop: 2,
   },
   emptyNutrition: {
     padding: 20,

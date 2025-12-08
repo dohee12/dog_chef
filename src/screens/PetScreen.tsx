@@ -2,9 +2,10 @@ import PetCard from "@/components/PetCard";
 import Colors from "@/constants/Colors";
 import { usePet } from "@/context/PetContext";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useState } from "react";
 import {
   Alert,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,7 +15,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function PetScreen({ navigation }: any) {
-  const { pets, deletePet } = usePet();
+  const { pets, deletePet, loadPets } = usePet();
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleDeletePet = (id: number) => {
     Alert.alert("반려견 삭제", "정말로 삭제하시겠습니까?", [
@@ -27,6 +29,12 @@ export default function PetScreen({ navigation }: any) {
     ]);
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadPets();
+    setRefreshing(false);
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -36,7 +44,12 @@ export default function PetScreen({ navigation }: any) {
         </Text>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView
+        style={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {pets.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconContainer}>

@@ -2,6 +2,7 @@ import FavoritesScreen from "@/screens/FavoritesScreen";
 import HomeScreen from "@/screens/HomeScreen";
 import PetScreen from "@/screens/PetScreen";
 import SearchScreen from "@/screens/SearchScreen";
+import { Ionicons } from "@expo/vector-icons";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import React from "react";
 import Colors from "../constants/Colors";
@@ -11,7 +12,7 @@ const Tab = createBottomTabNavigator();
 export default function TabNavigator() {
   return (
     <Tab.Navigator
-      screenOptions={{
+      screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: Colors.tabActive,
         tabBarInactiveTintColor: Colors.tabInactive,
@@ -19,7 +20,24 @@ export default function TabNavigator() {
           backgroundColor: Colors.background,
           borderTopColor: Colors.borderLight,
         },
-      }}
+        tabBarIcon: ({ focused, color, size }) => {
+          let iconName: keyof typeof Ionicons.glyphMap;
+
+          if (route.name === "Home") {
+            iconName = focused ? "home" : "home-outline";
+          } else if (route.name === "Search") {
+            iconName = focused ? "search" : "search-outline";
+          } else if (route.name === "Favorites") {
+            iconName = focused ? "heart" : "heart-outline";
+          } else if (route.name === "Pet") {
+            iconName = focused ? "paw" : "paw-outline";
+          } else {
+            iconName = "help";
+          }
+
+          return <Ionicons name={iconName} size={size} color={color} />;
+        },
+      })}
     >
       <Tab.Screen
         name="Home"

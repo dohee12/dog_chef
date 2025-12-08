@@ -5,18 +5,25 @@ import { useRecipe } from "@/context/RecipeContext";
 import { Recipe } from "@/types/Recipe";
 import { checkAllergy } from "@/utils/allergyMappings";
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import React, { useState } from "react";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function FavoritesScreen({ navigation }: any) {
-  const { recipes, toggleLike } = useRecipe();
+  const { recipes, toggleLike, loadRecipes } = useRecipe();
   const { pets } = usePet();
+  const [refreshing, setRefreshing] = useState(false);
 
   const favoriteRecipes = recipes.filter((recipe) => recipe.isLiked);
 
   const handleRecipePress = (recipe: Recipe) => {
     navigation.navigate("RecipeDetail", { recipe });
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadRecipes();
+    setRefreshing(false);
   };
 
   return (
@@ -28,7 +35,12 @@ export default function FavoritesScreen({ navigation }: any) {
         </Text>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView
+        style={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+        }
+      >
         {favoriteRecipes.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconContainer}>
