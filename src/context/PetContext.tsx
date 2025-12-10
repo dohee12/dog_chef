@@ -28,21 +28,19 @@ export const PetProvider = ({ children }: { children: React.ReactNode }) => {
 
   const loadPets = async () => {
     try {
-      // Force update with mockData for development
-      setPets(mockPets); 
-      await AsyncStorage.setItem("pets", JSON.stringify(mockPets));
-
-      /*
       const storedPets = await AsyncStorage.getItem("pets");
       if (storedPets) {
+        // 저장된 데이터 사용
         setPets(JSON.parse(storedPets));
       } else {
+        // 초기값 사용 및 저장
         setPets(mockPets); 
         await AsyncStorage.setItem("pets", JSON.stringify(mockPets));
       }
-      */
     } catch (error) {
       console.error("Failed to load pets", error);
+      // 에러 시 mock data
+      setPets(mockPets);
     }
   };
 
@@ -59,7 +57,8 @@ export const PetProvider = ({ children }: { children: React.ReactNode }) => {
     const newId =
       pets.length > 0 ? Math.max(...pets.map((p) => p.id)) + 1 : 1;
     const newPet: Pet = { ...petData, id: newId };
-    savePets([...pets, newPet]);
+    // 최신 등록한 펫을 맨 앞에 추가
+    savePets([newPet, ...pets]);
   };
 
   const updatePet = (updatedPet: Pet) => {

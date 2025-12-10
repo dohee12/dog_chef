@@ -37,6 +37,9 @@ const DEFAULT_INGREDIENTS = [
   "두부",
 ];
 
+// 24시간 (밀리초 단위)
+const RECIPE_TTL = 24 * 60 * 60 * 1000; 
+
 const RecipeContext = createContext<RecipeContextType>({
   recipes: [],
   ingredients: DEFAULT_INGREDIENTS,
@@ -57,23 +60,45 @@ export const RecipeProvider = ({ children }: { children: React.ReactNode }) => {
     loadIngredients();
   }, []);
 
+  // 레시피 필터링 함수 (만료된 레시피 제거)
+  const filterExpiredRecipes = (recipeList: Recipe[]) => {
+    const now = new Date().getTime();
+    
+    return recipeList.filter((recipe) => {
+      // isUserCreated가 true인 경우에만 만료 체크 (기본 mockData는 유지하고 싶다면)
+      // 만약 모든 레시피에 적용하고 싶다면 조건문 제거
+      if (recipe.isUserCreated && recipe.createdDate) {
+        const createdTime = new Date(recipe.createdDate).getTime();
+        // 생성된 지 24시간이 지났으면 false (제거)
+        return (now - createdTime) < RECIPE_TTL;
+      }
+      return true; // 기본 데이터나 날짜 없는 데이터는 유지
+    });
+  };
+
   const loadRecipes = async () => {
     try {
-      // Force update with mockData for development
-      setRecipes(mockRecipes);
-      await AsyncStorage.setItem("recipes", JSON.stringify(mockRecipes));
-      
-      /* 
       const storedRecipes = await AsyncStorage.getItem("recipes");
       if (storedRecipes) {
-        setRecipes(JSON.parse(storedRecipes));
+        const parsedRecipes = JSON.parse(storedRecipes);
+        
+        // 로드 시 만료된 레시피 필터링
+        const validRecipes = filterExpiredRecipes(parsedRecipes);
+        
+        // 만약 만료되어 삭제된 레시피가 있다면 저장소도 업데이트
+        if (validRecipes.length !== parsedRecipes.length) {
+           await AsyncStorage.setItem("recipes", JSON.stringify(validRecipes));
+        }
+        
+        setRecipes(validRecipes);
       } else {
+        // 없으면 초기값(mockData) 사용 및 저장
         setRecipes(mockRecipes);
         await AsyncStorage.setItem("recipes", JSON.stringify(mockRecipes));
       }
-      */
     } catch (error) {
       console.error("Failed to load recipes", error);
+      // 에러 발생 시 안전하게 mockData 사용
       setRecipes(mockRecipes);
     }
   };
@@ -83,7 +108,6 @@ export const RecipeProvider = ({ children }: { children: React.ReactNode }) => {
       const storedIngredients = await AsyncStorage.getItem("customIngredients");
       if (storedIngredients) {
         const customIngredients = JSON.parse(storedIngredients);
-        // Merge defaults with custom, removing duplicates
         const merged = Array.from(new Set([...DEFAULT_INGREDIENTS, ...customIngredients]));
         setIngredients(merged);
       }
@@ -107,9 +131,6 @@ export const RecipeProvider = ({ children }: { children: React.ReactNode }) => {
     const newIngredients = [...ingredients, newIngredient];
     setIngredients(newIngredients);
     
-    // Save only custom ingredients (diff from default) or just save the whole list?
-    // Saving just custom ones is cleaner but more complex logic. 
-    // Let's just save the 'custom' part to storage so we don't duplicate defaults if defaults change in code.
     const customOnly = newIngredients.filter(i => !DEFAULT_INGREDIENTS.includes(i));
     
     try {
@@ -122,16 +143,18 @@ export const RecipeProvider = ({ children }: { children: React.ReactNode }) => {
   const addRecipe = (recipeData: Omit<Recipe, "id">) => {
     const newId =
       recipes.length > 0 ? Math.max(...recipes.map((r) => r.id)) + 1 : 1;
+    
     const newRecipe: Recipe = {
       ...recipeData,
       id: newId,
-      createdDate: new Date().toISOString(),
-      isUserCreated: true,
+      createdDate: new Date().toISOString(), // 생성 시간 기록 필수
+      isUserCreated: true, // 사용자 생성 여부 마킹
       reviews: 0,
       rating: 0,
       reviewList: [],
     };
-    saveRecipes([...recipes, newRecipe]);
+    // 최신 레시피가 위로 오도록 배열 앞쪽에 추가
+    saveRecipes([newRecipe, ...recipes]);
   };
 
   const updateRecipe = (updatedRecipe: Recipe) => {

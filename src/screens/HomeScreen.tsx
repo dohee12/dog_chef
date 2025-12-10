@@ -11,25 +11,31 @@ import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import React, { useMemo, useRef, useState } from "react";
 import {
+  Animated,
+  Dimensions,
+  Modal,
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 type TabType = "recipe" | "popular" | "recommendation";
 
+const { width, height } = Dimensions.get("window");
+
 export default function HomeScreen({ navigation }: any) {
-  // 레시피 데이터와 좋아요 함수 가져오기기
+  // 레시피 데이터와 좋아요 함수 가져오기
   const { recipes, toggleLike, loadRecipes } = useRecipe();
-  // 반려동물 데이터 가져오기기
+  // 반려동물 데이터 가져오기
   const { pets, loadPets } = usePet();
-  // 현재 선택된 카테고리리
+  // 현재 선택된 카테고리
   const [activeCategory, setActiveCategory] = useState("전체");
-  // 현재 활성화된 탭탭
+  // 현재 활성화된 탭
   const [activeTab, setActiveTab] = useState<TabType>("recipe");
   const [refreshing, setRefreshing] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -38,14 +44,18 @@ export default function HomeScreen({ navigation }: any) {
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
   const [showIngredientSheet, setShowIngredientSheet] = useState(false);
 
-  // 탭 목록 정의의
+  // FAB 상태 및 애니메이션
+  const [isFabOpen, setIsFabOpen] = useState(false);
+  const fabAnimation = useRef(new Animated.Value(0)).current;
+
+  // 탭 목록 정의
   const tabs: { key: TabType; label: string }[] = [
     { key: "recipe", label: "전체 레시피" },
     { key: "popular", label: "인기 레시피" },
     { key: "recommendation", label: "맞춤 추천" },
   ];
 
-  // 재료 선택 토굴 함수
+  // 재료 선택 토글 함수
   const toggleIngredient = (ing: string) => {
     setSelectedIngredients((prev) =>
       prev.includes(ing) ? prev.filter((i) => i !== ing) : [...prev, ing]
@@ -80,7 +90,7 @@ export default function HomeScreen({ navigation }: any) {
 
   // 레시피 상세 화면으로 이동
   const handleRecipePress = (recipe: Recipe) => {
-    navigation.navigate("RecipeDetail", { recipe });
+    navigation.navigate("RecipeDetail", { recipe }); // RootNavigator 이름과 일치시킴
   };
 
   const onRefresh = async () => {
@@ -92,6 +102,58 @@ export default function HomeScreen({ navigation }: any) {
   const handleLogoPress = () => {
     scrollViewRef.current?.scrollTo({ y: 0, animated: true });
   };
+
+  // FAB Toggle
+  const toggleFab = () => {
+    const toValue = isFabOpen ? 0 : 1;
+    Animated.spring(fabAnimation, {
+      toValue,
+      useNativeDriver: true,
+      friction: 5,
+    }).start();
+    setIsFabOpen(!isFabOpen);
+  };
+
+  const closeFab = () => {
+    Animated.spring(fabAnimation, {
+      toValue: 0,
+      useNativeDriver: true,
+      friction: 5,
+    }).start();
+    setIsFabOpen(false);
+  };
+
+  // FAB Animations
+  const dogStyle = {
+    transform: [
+      { scale: fabAnimation },
+      {
+        translateY: fabAnimation.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, -70], // 더 아래쪽 (Main 버튼 바로 위)
+        }),
+      },
+    ],
+    opacity: fabAnimation,
+  };
+
+  const recipeStyle = {
+    transform: [
+      { scale: fabAnimation },
+      {
+        translateY: fabAnimation.interpolate({
+          inputRange: [0, 1],
+          outputRange: [0, -130], // 더 위쪽 (반려견 버튼 위)
+        }),
+      },
+    ],
+    opacity: fabAnimation,
+  };
+
+  const dimOpacity = fabAnimation.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0, 0.5],
+  });
 
   return (
     <SafeAreaView style={styles.container}>
@@ -119,22 +181,15 @@ export default function HomeScreen({ navigation }: any) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
-        {/* 타이틀 섹션션 */}
+        {/* 타이틀 섹션 */}
         <View style={styles.titleSection}>
           <Text style={styles.title}>멍슐랭 레시피</Text>
           <Text style={styles.subtitle}>우리 강아지를 위한 건강한 레시피</Text>
         </View>
 
-        {/* 레시피 추가 버튼 */}
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => navigation.navigate("RecipeForm")}
-        >
-          <Ionicons name="add" size={20} color="white" />
-          <Text style={styles.addButtonText}>내 레시피 추가</Text>
-        </TouchableOpacity>
+        {/* 상단 '내 레시피 추가' 버튼 제거됨 */}
 
-        {/* 탭 바 (전체 레시피, 인기 레시피, 맞춤 추천) */}
+        {/* 탭 바 */}
         <View style={styles.tabBarContainer}>
           <View style={styles.tabBar}>
             {tabs.map((tab) => (
@@ -200,7 +255,6 @@ export default function HomeScreen({ navigation }: any) {
 
             <View style={styles.recipeList}>
               {filteredRecipes.map((recipe) => {
-                // Check for allergies
                 const hasAllergy = pets.some((pet) =>
                   pet.allergies.some((allergy) =>
                     recipe.ingredients.some((ing) => ing.includes(allergy))
@@ -259,6 +313,56 @@ export default function HomeScreen({ navigation }: any) {
         <View style={styles.bottomSpacer} />
       </ScrollView>
 
+      {/* Custom FAB Implementation in HomeScreen */}
+      <Modal visible={isFabOpen} transparent animationType="none">
+        <TouchableWithoutFeedback onPress={closeFab}>
+          <Animated.View
+            style={[styles.dimBackground, { opacity: dimOpacity }]}
+          />
+        </TouchableWithoutFeedback>
+
+        {/* Floating Menu Items */}
+        <View style={styles.fabMenuContainer} pointerEvents="box-none">
+          {/* 1. 레시피 등록 */}
+          <Animated.View style={[styles.fabSubButtonWrapper, recipeStyle]}>
+            <TouchableOpacity
+              style={styles.fabSubButton}
+              onPress={() => {
+                closeFab();
+                navigation.navigate("RecipeForm"); // 네비게이션 연결
+              }}
+            >
+              <Ionicons name="restaurant" size={20} color="white" />
+              <Text style={styles.fabSubButtonText}>레시피 등록</Text>
+            </TouchableOpacity>
+          </Animated.View>
+
+          {/* 2. 반려견 등록 */}
+          <Animated.View style={[styles.fabSubButtonWrapper, dogStyle]}>
+            <TouchableOpacity
+              style={styles.fabSubButton}
+              onPress={() => {
+                closeFab();
+                navigation.navigate("PetForm"); // 네비게이션 연결
+              }}
+            >
+              <Ionicons name="paw" size={20} color="white" />
+              <Text style={styles.fabSubButtonText}>반려견 등록</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </Modal>
+
+      {/* Main FAB Button (Always Visible) */}
+      <TouchableOpacity
+        style={styles.fabMainButton}
+        activeOpacity={0.9}
+        onPress={toggleFab}
+      >
+        <Ionicons name="add" size={24} color="white" />
+        <Text style={styles.fabMainText}>추가</Text>
+      </TouchableOpacity>
+
       <IngredientSelector
         visible={showIngredientSheet}
         onClose={() => setShowIngredientSheet(false)}
@@ -312,22 +416,6 @@ const styles = StyleSheet.create({
   subtitle: {
     fontSize: 14,
     color: Colors.textLight,
-  },
-  addButton: {
-    backgroundColor: Colors.primary,
-    borderRadius: 12,
-    padding: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginHorizontal: 24,
-    marginBottom: 24,
-  },
-  addButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    marginLeft: 8,
-    fontSize: 16,
   },
   tabBarContainer: {
     paddingHorizontal: 24,
@@ -388,9 +476,8 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   bottomSpacer: {
-    height: 80,
+    height: 100, // FAB 공간 확보
   },
-
   filterHeader: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -429,8 +516,6 @@ const styles = StyleSheet.create({
     fontSize: 10,
     fontWeight: "bold",
   },
-
-  // Count Styles
   countContainer: {
     paddingHorizontal: 24,
     marginBottom: 12,
@@ -439,5 +524,66 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Colors.textLight,
     fontWeight: "600",
+  },
+
+  // FAB Styles
+  fabMainButton: {
+    position: "absolute",
+    bottom: 24,
+    right: 24,
+    backgroundColor: Colors.primary,
+    borderRadius: 30,
+    height: 56,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+    zIndex: 999,
+  },
+  fabMainText: {
+    color: "white",
+    fontWeight: "bold",
+    fontSize: 16,
+    marginLeft: 8,
+  },
+  dimBackground: {
+    flex: 1,
+    backgroundColor: "black",
+  },
+  fabMenuContainer: {
+    position: "absolute",
+    bottom: 24 + 56 + 16, // FAB 높이 + 마진
+    right: 24,
+    alignItems: "flex-end",
+  },
+  fabSubButtonWrapper: {
+    position: "absolute",
+    right: 0,
+    bottom: 0,
+  },
+  fabSubButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: Colors.primaryLight, // 보조 색상 (살짝 연한 주황)
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    borderRadius: 24,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 4,
+  },
+  fabSubButtonText: {
+    color: "white",
+    fontWeight: "bold",
+    marginLeft: 8,
+    fontSize: 14,
   },
 });
