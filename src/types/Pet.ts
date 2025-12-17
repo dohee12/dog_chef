@@ -1,5 +1,5 @@
 export interface Pet {
-  id: number;
+  id: number | string; // Supabase UUID 지원
   name: string;
   breed: string;
   age: number;

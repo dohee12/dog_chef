@@ -9,7 +9,7 @@ export interface NutritionInfo {
 }
 
 export interface Review {
-  id: number;
+  id: number | string; // Supabase UUID 지원
   userId: string;
   userName: string;
   rating: number;
@@ -23,7 +23,7 @@ export interface Review {
 }
 
 export interface Recipe {
-  id: number;
+  id: number | string; // Supabase UUID 지원
   title: string;
   description: string;
   image: string;
