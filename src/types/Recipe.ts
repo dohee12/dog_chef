@@ -23,25 +23,24 @@ export interface Review {
 }
 
 export interface Recipe {
-  id: number | string; // Supabase UUID 지원
+  id: number | string;
+  user_id?: string;
   title: string;
   description: string;
   image: string;
-  cookTime: number;
+  category: string;
+  author: string;
+  cook_time: number;
   servings: number;
-  difficulty: string;
   rating: number;
   reviews: number;
-  author: string;
-  category: string;
-  tags: string[];
+  safety_score: number;
   ingredients: string[];
   instructions: string[];
-  isLiked?: boolean;
-  nutrition?: NutritionInfo;
-  reviewList?: Review[];
-  isUserCreated?: boolean;
-  createdDate?: string;
-  safetyScore?: number;
-  rankingPosition?: number;
+  tags: string[];
+  nutrition: NutritionInfo;
+  difficulty: string;
+  is_user_created: boolean;
+  isLiked: boolean;
+  review_list: Review[];
 }

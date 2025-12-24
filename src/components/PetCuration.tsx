@@ -1,10 +1,10 @@
 import Colors from "@/constants/Colors";
 import { Pet } from "@/types/Pet";
 import { Recipe } from "@/types/Recipe";
+import { allergyMappings } from "@/utils/allergyMappings";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 import RecipeCard from "./RecipeCard";
-import { allergyMappings } from "@/utils/allergyMappings";
 
 interface Props {
   recipes: Recipe[];
@@ -33,30 +33,37 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     color: Colors.textLight,
-    fontStyle: 'italic',
-    textAlign: 'center',
+    fontStyle: "italic",
+    textAlign: "center",
     marginTop: 10,
   },
 });
 
-export default function PetCuration({ recipes, pets, onRecipePress, onLike }: Props) {
+export default function PetCuration({
+  recipes,
+  pets,
+  onRecipePress,
+  onLike,
+}: Props) {
   if (pets.length === 0) return null;
 
   // Simple curation: Recommend recipes that don't contain allergies for the first pet
   const mainPet = pets[0];
-  
+
   // Find recipes safe for this pet
-  const safeRecipes = recipes.filter(recipe => {
-    const petAllergies = mainPet.allergies || [];
-    // Check if any ingredient maps to an allergy
-    const hasAllergy = recipe.ingredients.some(ingredient => {
-      return petAllergies.some(allergy => {
-         const relatedTerms = allergyMappings[allergy] || [allergy];
-         return relatedTerms.some(term => ingredient.includes(term));
+  const safeRecipes = recipes
+    .filter((recipe) => {
+      const petAllergies = mainPet.allergies || [];
+      // Check if any ingredient maps to an allergy
+      const hasAllergy = recipe.ingredients.some((ingredient) => {
+        return petAllergies.some((allergy) => {
+          const relatedTerms = allergyMappings[allergy] || [allergy];
+          return relatedTerms.some((term) => ingredient.includes(term));
+        });
       });
-    });
-    return !hasAllergy;
-  }).slice(0, 2); // Take top 2
+      return !hasAllergy;
+    })
+    .slice(0, 2); // Take top 2
 
   return (
     <View style={styles.container}>
@@ -64,14 +71,14 @@ export default function PetCuration({ recipes, pets, onRecipePress, onLike }: Pr
         <Text style={styles.title}>{mainPet.name}를 위한 추천</Text>
         <Text style={styles.subtitle}>알러지 걱정 없는 안전한 레시피에요</Text>
       </View>
-      
+
       {safeRecipes.length > 0 ? (
-        safeRecipes.map(recipe => (
+        safeRecipes.map((recipe) => (
           <RecipeCard
             key={recipe.id}
             recipe={recipe}
             onPress={() => onRecipePress(recipe)}
-            onLike={() => onLike(recipe.id)}
+            onLike={() => onLike(Number(recipe.id))}
           />
         ))
       ) : (
@@ -80,4 +87,3 @@ export default function PetCuration({ recipes, pets, onRecipePress, onLike }: Pr
     </View>
   );
 }
-

@@ -338,7 +338,7 @@ export default function SearchScreen({ navigation }: any) {
                     key={recipe.id}
                     recipe={recipe}
                     onPress={() => handleRecipePress(recipe)}
-                    onLike={() => toggleLike(recipe.id)}
+                    onLike={() => toggleLike(Number(recipe.id))}
                   />
                 ))}
               </View>

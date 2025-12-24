@@ -39,7 +39,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
   // Calculate nutrition needs if pets exist (using first pet for demo)
   const targetPet = pets.length > 0 ? pets[0] : null;
   const dailyNeeds = targetPet
-    ? getDailyNeeds(targetPet.weight, targetPet.isNeutered, targetPet.age)
+    ? getDailyNeeds(targetPet.weight, targetPet.is_neutered, targetPet.age)
     : null;
 
   const getPercentage = (value: number, total: number) => {
@@ -68,7 +68,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
               styles.likeButton,
               recipe.isLiked && styles.likeButtonActive,
             ]}
-            onPress={() => toggleLike(recipe.id)}
+            onPress={() => toggleLike(Number(recipe.id))}
           >
             <Ionicons
               name={recipe.isLiked ? "heart" : "heart-outline"}
@@ -98,7 +98,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
             <View style={styles.infoCard}>
               <Ionicons name="time-outline" size={24} color={Colors.primary} />
               <Text style={styles.infoLabel}>조리시간</Text>
-              <Text style={styles.infoValue}>{recipe.cookTime}분</Text>
+              <Text style={styles.infoValue}>{recipe.cook_time}분</Text>
             </View>
             <View style={styles.infoCard}>
               <Ionicons
@@ -284,10 +284,10 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
             )
           ) : (
             <ReviewSystem
-              reviews={recipe.reviewList || []}
-              onAddReview={(review) => addReview(recipe.id, review)}
+              reviews={recipe.review_list || []}
+              onAddReview={(review) => addReview(Number(recipe.id), review)}
               userPets={pets}
-              recipeId={recipe.id}
+              recipeId={Number(recipe.id)}
             />
           )}
         </View>

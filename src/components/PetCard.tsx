@@ -104,7 +104,7 @@ export default function PetCard({ pet, onEdit, onDelete }: Props) {
           {pet.breed} · {pet.age}살
         </Text>
         <Text style={styles.detailText}>
-          {pet.weight}kg · {pet.isNeutered ? "중성화 완료" : "중성화 전"}
+          {pet.weight}kg · {pet.is_neutered ? "중성화 완료" : "중성화 전"}
         </Text>
         {pet.allergies.length > 0 && (
           <Text style={styles.allergyText} numberOfLines={1}>

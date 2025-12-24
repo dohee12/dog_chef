@@ -6,7 +6,13 @@ import { Recipe } from "@/types/Recipe";
 import { checkAllergy } from "@/utils/allergyMappings";
 import { Ionicons } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function FavoritesScreen({ navigation }: any) {
@@ -59,7 +65,7 @@ export default function FavoritesScreen({ navigation }: any) {
                 key={recipe.id}
                 recipe={recipe}
                 onPress={() => handleRecipePress(recipe)}
-                onLike={() => toggleLike(recipe.id)}
+                onLike={() => toggleLike(Number(recipe.id))}
                 hasAllergy={checkAllergy(recipe, pets)}
               />
             ))}

@@ -30,6 +30,19 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
   const recipe =
     recipes.find((r) => r.id === initialRecipe.id) || initialRecipe;
 
+  if (!recipe) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <Text>레시피 정보를 불러올 수 없습니다.</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Text style={{ color: Colors.primary, marginTop: 10 }}>
+            뒤로 가기
+          </Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
+
   const { allergicIngredients, affectedPets } = getAllergicIngredients(
     recipe,
     pets
@@ -39,7 +52,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
   // Calculate nutrition needs if pets exist (using first pet for demo)
   const targetPet = pets.length > 0 ? pets[0] : null;
   const dailyNeeds = targetPet
-    ? getDailyNeeds(targetPet.weight, targetPet.isNeutered, targetPet.age)
+    ? getDailyNeeds(targetPet.weight, targetPet.is_neutered, targetPet.age)
     : null;
 
   const getPercentage = (value: number, total: number) => {
@@ -68,12 +81,12 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
               styles.likeButton,
               recipe.isLiked && styles.likeButtonActive,
             ]}
-            onPress={() => toggleLike(recipe.id)}
+            onPress={() => toggleLike(recipe.id as number)}
           >
             <Ionicons
               name={recipe.isLiked ? "heart" : "heart-outline"}
               size={24}
-              color={recipe.isLiked ? "white" : "#6b7280"}
+              color="white"
             />
           </TouchableOpacity>
         </View>
@@ -83,6 +96,14 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
           <View style={styles.section}>
             <Text style={styles.title}>{recipe.title}</Text>
             <Text style={styles.description}>{recipe.description}</Text>
+
+            <View style={styles.deleteNotice}>
+              <Ionicons name="time-outline" size={16} color={Colors.primary} />
+              <Text style={styles.deleteNoticeText}>
+                신선한 정보 유지를 위해 들록 후 24시간 동안만 공유되는
+                게시물입니다.
+              </Text>
+            </View>
           </View>
 
           {/* Allergy Warning */}
@@ -98,7 +119,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
             <View style={styles.infoCard}>
               <Ionicons name="time-outline" size={24} color={Colors.primary} />
               <Text style={styles.infoLabel}>조리시간</Text>
-              <Text style={styles.infoValue}>{recipe.cookTime}분</Text>
+              <Text style={styles.infoValue}>{recipe.cook_time}분</Text>
             </View>
             <View style={styles.infoCard}>
               <Ionicons
@@ -284,10 +305,10 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
             )
           ) : (
             <ReviewSystem
-              reviews={recipe.reviewList || []}
-              onAddReview={(review) => addReview(recipe.id, review)}
+              reviews={recipe.review_list || []}
+              onAddReview={(review) => addReview(Number(recipe.id), review)}
               userPets={pets}
-              recipeId={recipe.id}
+              recipeId={Number(recipe.id)}
             />
           )}
         </View>
@@ -551,5 +572,18 @@ const styles = StyleSheet.create({
   },
   emptyNutritionText: {
     color: Colors.textLight,
+  },
+  deleteNotice: {
+    flexDirection: "row",
+    backgroundColor: Colors.lightBackground,
+    padding: 10,
+    borderRadius: 8,
+    marginTop: 10,
+    alignItems: "center",
+  },
+  deleteNoticeText: {
+    fontSize: 12,
+    color: Colors.textLight,
+    marginLeft: 6,
   },
 });

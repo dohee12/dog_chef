@@ -1,23 +1,23 @@
-import { useState, useEffect } from 'react';
-import { Recipe } from '../types';
-import { mockRecipes } from '../utils/mockData';
+import { useRecipe } from "@/context/RecipeContext";
+import { useEffect, useState } from "react";
+import { Recipe } from "../types";
 
 export const usePopularRecipes = () => {
+  const { recipes } = useRecipe();
   const [popularRecipes, setPopularRecipes] = useState<Recipe[]>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchPopular = async () => {
-        setLoading(true);
-        // Simulate fetch
-        await new Promise(resolve => setTimeout(resolve, 500));
-        const sorted = [...mockRecipes].sort((a, b) => b.rating - a.rating).slice(0, 5);
-        setPopularRecipes(sorted);
-        setLoading(false);
-    };
-    fetchPopular();
-  }, []);
+    // 레시피가 로드되었을 떄만 정렬 수행
+    if (recipes.length > 0) {
+      setLoading(true);
+      const sorted = [...recipes]
+        .sort((a, b) => (b.rating || 0) - (a.rating || 0))
+        .slice(0, 5);
+      setPopularRecipes(sorted);
+      setLoading(false);
+    }
+  }, [recipes]);
 
   return { popularRecipes, loading };
 };
-

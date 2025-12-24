@@ -58,7 +58,7 @@ export default function PopularSection({
             <RecipeCard
               recipe={recipe}
               onPress={() => onRecipePress(recipe)}
-              onLike={() => onLike && onLike(recipe.id)}
+              onLike={() => onLike && onLike(Number(recipe.id))}
               // hasAllergy={/* passed from parent if needed */}
             />
           </View>

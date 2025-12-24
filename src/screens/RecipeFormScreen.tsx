@@ -28,7 +28,7 @@ export default function RecipeFormScreen({ navigation }: any) {
     description: "",
     image: "",
     category: "주식",
-    cookTime: "",
+    cook_time: "",
     servings: "",
     difficulty: "보통",
     author: "",
@@ -108,21 +108,28 @@ export default function RecipeFormScreen({ navigation }: any) {
       return;
     }
     if (formData.instructions.length === 0) {
-      Alert.alert("오류", "최소 하나 이상의 조리 과정을 입력해주세요.");
+      Alert.alert("오류", "조리 방법을 입력해주세요.");
       return;
     }
 
     addRecipe({
-      ...formData,
-      cookTime: parseInt(formData.cookTime) || 0,
-      servings: parseInt(formData.servings) || 1,
-      author: formData.author || "익명",
+      title: formData.title,
+      description: formData.description,
       image:
         formData.image ||
-        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80", // Default food image
+        "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
+      category: formData.category,
+      cook_time: parseInt(formData.cook_time) || 0,
+      servings: parseInt(formData.servings) || 1,
+      difficulty: formData.difficulty,
+      author: formData.author || "익명",
+      tags: formData.tags,
+      ingredients: formData.ingredients,
+      instructions: formData.instructions,
       reviews: 0,
       rating: 0,
-      reviewList: [],
+      review_list: [],
+      is_user_created: true,
       nutrition: {
         calories: 0,
         protein: 0,
@@ -132,7 +139,7 @@ export default function RecipeFormScreen({ navigation }: any) {
         calcium: 0,
         phosphorus: 0,
       },
-    });
+    } as any);
 
     navigation.goBack();
   };
@@ -164,7 +171,7 @@ export default function RecipeFormScreen({ navigation }: any) {
             <Text style={styles.label}>설명</Text>
             <TextInput
               style={[styles.input, styles.textarea]}
-              placeholder="레시피에 대한 간단한 설명을 입력하세요"
+              placeholder="레시피에 대한 설명을 입력해주세요"
               value={formData.description}
               onChangeText={(text) =>
                 setFormData({ ...formData, description: text })
@@ -209,7 +216,7 @@ export default function RecipeFormScreen({ navigation }: any) {
 
             <TextInput
               style={styles.input}
-              placeholder="이미지 URL 직접 입력"
+              placeholder="이미지 URL 입력"
               value={formData.image}
               onChangeText={(text) => setFormData({ ...formData, image: text })}
             />
@@ -247,10 +254,10 @@ export default function RecipeFormScreen({ navigation }: any) {
               <Text style={styles.label}>조리시간</Text>
               <TextInput
                 style={styles.input}
-                placeholder="30"
-                value={formData.cookTime}
+                placeholder="조리시간"
+                value={formData.cook_time}
                 onChangeText={(text) =>
-                  setFormData({ ...formData, cookTime: text })
+                  setFormData({ ...formData, cook_time: text })
                 }
                 keyboardType="numeric"
               />
@@ -261,7 +268,7 @@ export default function RecipeFormScreen({ navigation }: any) {
               <Text style={styles.label}>분량</Text>
               <TextInput
                 style={styles.input}
-                placeholder="2"
+                placeholder="분량"
                 value={formData.servings}
                 onChangeText={(text) =>
                   setFormData({ ...formData, servings: text })
@@ -352,7 +359,7 @@ export default function RecipeFormScreen({ navigation }: any) {
             <View style={styles.tagInputContainer}>
               <TextInput
                 style={styles.tagInput}
-                placeholder="예: 닭가슴살 100g"
+                placeholder="재료 입력"
                 value={ingredientInput}
                 onChangeText={setIngredientInput}
                 onSubmitEditing={handleAddIngredient}
@@ -381,7 +388,7 @@ export default function RecipeFormScreen({ navigation }: any) {
             <View style={styles.tagInputContainer}>
               <TextInput
                 style={[styles.tagInput, styles.textarea]}
-                placeholder="단계별 조리 방법 입력"
+                placeholder="조리 방법 입력"
                 value={instructionInput}
                 onChangeText={setInstructionInput}
                 multiline

@@ -7,7 +7,7 @@ export const mockRecipes: Recipe[] = [
     description: "소화가 잘 되고 영양가 높은 닭가슴살 야채죽입니다.",
     image:
       "https://images.unsplash.com/photo-1515543237350-b3eea1ec8082?q=80&w=800&auto=format&fit=crop", // Chicken Porridge/Soup
-    cookTime: 30,
+    cook_time: 30,
     servings: 2,
     difficulty: "쉬움",
     rating: 4.8,
@@ -32,8 +32,10 @@ export const mockRecipes: Recipe[] = [
       calcium: 20,
       phosphorus: 100,
     },
-    rankingPosition: 1,
-    safetyScore: 95,
+    safety_score: 95,
+    is_user_created: false,
+    user_id: "admin_uuid",
+    isLiked: false,
   },
   {
     id: 2,
@@ -41,7 +43,7 @@ export const mockRecipes: Recipe[] = [
     description: "강아지들이 좋아하는 달콤한 고구마로 만든 쿠키입니다.",
     image:
       "https://images.unsplash.com/photo-1505935428862-770b6f24f629?q=80&w=800&auto=format&fit=crop", // Cookies with sweet potato vibes
-    cookTime: 40,
+    cook_time: 40,
     servings: 10,
     difficulty: "보통",
     rating: 4.9,
@@ -65,8 +67,10 @@ export const mockRecipes: Recipe[] = [
       calcium: 10,
       phosphorus: 30,
     },
-    rankingPosition: 2,
-    safetyScore: 92,
+    safety_score: 92,
+    is_user_created: false,
+    user_id: "admin_uuid",
+    isLiked: false,
   },
   {
     id: 3,
@@ -74,7 +78,7 @@ export const mockRecipes: Recipe[] = [
     description: "오메가-3가 풍부한 연어로 만든 특식 덮밥입니다.",
     image:
       "https://images.unsplash.com/photo-1604908177453-7462950a6a3b?q=80&w=800&auto=format&fit=crop", // Salmon bowl distinct
-    cookTime: 25,
+    cook_time: 25,
     servings: 1,
     difficulty: "보통",
     rating: 4.7,
@@ -98,8 +102,10 @@ export const mockRecipes: Recipe[] = [
       calcium: 15,
       phosphorus: 120,
     },
-    rankingPosition: 3,
-    safetyScore: 90,
+    safety_score: 90,
+    is_user_created: false,
+    user_id: "admin_uuid",
+    isLiked: false,
   },
   {
     id: 4,
@@ -107,7 +113,7 @@ export const mockRecipes: Recipe[] = [
     description: "특별한 날을 위한 강아지용 바나나 케이크입니다.",
     image:
       "https://images.unsplash.com/photo-1571115177098-24ec42ed204d?q=80&w=800&auto=format&fit=crop", // Banana Cake
-    cookTime: 60,
+    cook_time: 60,
     servings: 4,
     difficulty: "어려움",
     rating: 4.6,
@@ -131,8 +137,10 @@ export const mockRecipes: Recipe[] = [
       calcium: 12,
       phosphorus: 40,
     },
-    rankingPosition: 4,
-    safetyScore: 88,
+    safety_score: 88,
+    is_user_created: false,
+    user_id: "admin_uuid",
+    isLiked: false,
   },
   {
     id: 5,
@@ -140,7 +148,7 @@ export const mockRecipes: Recipe[] = [
     description: "위장에 좋은 양배추를 듬뿍 넣은 볶음밥입니다.",
     image:
       "https://images.unsplash.com/photo-1603133872878-684f108fd03d?q=80&w=800&auto=format&fit=crop", // Fried Rice
-    cookTime: 20,
+    cook_time: 20,
     servings: 1,
     difficulty: "쉬움",
     rating: 4.4,
@@ -163,8 +171,10 @@ export const mockRecipes: Recipe[] = [
       calcium: 25,
       phosphorus: 80,
     },
-    rankingPosition: 5,
-    safetyScore: 93,
+    safety_score: 93,
+    is_user_created: false,
+    user_id: "admin_uuid",
+    isLiked: false,
   },
   {
     id: 6,
@@ -172,7 +182,7 @@ export const mockRecipes: Recipe[] = [
     description: "부드럽고 달콤한 단호박 스프, 입맛 없을 때 좋아요.",
     image:
       "https://images.unsplash.com/photo-1505253716362-afaea1d3d1af?q=80&w=800&auto=format&fit=crop", // Pumpkin soup distinct
-    cookTime: 25,
+    cook_time: 25,
     servings: 2,
     difficulty: "쉬움",
     rating: 4.5,
@@ -195,8 +205,10 @@ export const mockRecipes: Recipe[] = [
       calcium: 80,
       phosphorus: 60,
     },
-    rankingPosition: 6,
-    safetyScore: 91,
+    safety_score: 91,
+    is_user_created: false,
+    user_id: "admin_uuid",
+    isLiked: false,
   },
   {
     id: 7,
@@ -204,7 +216,7 @@ export const mockRecipes: Recipe[] = [
     description: "식이섬유가 풍부한 오트밀로 만든 건강 간식입니다.",
     image:
       "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?q=80&w=800&auto=format&fit=crop", // Oatmeal Cookies new
-    cookTime: 35,
+    cook_time: 35,
     servings: 8,
     difficulty: "보통",
     rating: 4.3,
@@ -228,8 +240,10 @@ export const mockRecipes: Recipe[] = [
       calcium: 5,
       phosphorus: 45,
     },
-    rankingPosition: 7,
-    safetyScore: 89,
+    safety_score: 89,
+    is_user_created: false,
+    user_id: "admin_uuid",
+    isLiked: false,
   },
   {
     id: 8,
@@ -237,7 +251,7 @@ export const mockRecipes: Recipe[] = [
     description: "영양 만점 소고기 미트볼, 특식으로 최고에요!",
     image:
       "https://images.unsplash.com/photo-1529042410759-befb1204b468?q=80&w=800&auto=format&fit=crop", // Meatballs
-    cookTime: 45,
+    cook_time: 45,
     servings: 3,
     difficulty: "보통",
     rating: 4.8,
@@ -261,24 +275,28 @@ export const mockRecipes: Recipe[] = [
       calcium: 15,
       phosphorus: 110,
     },
-    rankingPosition: 8,
-    safetyScore: 94,
+    safety_score: 94,
+    is_user_created: false,
+    user_id: "admin_uuid",
+    isLiked: false,
   },
 ];
 
 export const mockPets: Pet[] = [
   {
     id: 1,
+    user_id: "user_12345",
+    device_id: "device_12345",
     name: "구름이",
     breed: "말티즈",
     age: 3,
     weight: 3.2,
-    allergies: ["닭가슴살"],
-    healthConditions: ["슬개골 탈구"],
-    birthDate: "2021-05-15",
     gender: "male",
-    isNeutered: true,
+    is_neutered: true,
     image:
       "https://images.unsplash.com/photo-1517423440428-a5a00ad493e8?q=80&w=400&auto=format&fit=crop",
+    birth_date: "2021-05-15",
+    allergies: ["닭가슴살"],
+    health_conditions: ["슬개골 탈구"],
   },
 ];

@@ -75,7 +75,7 @@ export default function PetScreen({ navigation }: any) {
                 key={pet.id}
                 pet={pet}
                 onEdit={() => navigation.navigate("PetForm", { pet })}
-                onDelete={() => handleDeletePet(pet.id)}
+                onDelete={() => handleDeletePet(Number(pet.id))}
               />
             ))}
 

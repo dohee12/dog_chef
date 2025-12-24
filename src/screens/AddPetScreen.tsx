@@ -1,6 +1,7 @@
 import IngredientSelector from "@/components/IngredientSelector";
 import Colors from "@/constants/Colors";
 import { usePet } from "@/context/PetContext";
+import { supabase } from "@/lib/supabase";
 import { Pet } from "@/types/Pet";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -56,15 +57,17 @@ export default function PetFormScreen({ navigation, route }: any) {
   const { addPet, updatePet } = usePet();
 
   const [formData, setFormData] = useState<Omit<Pet, "id">>({
+    user_id: "",
+    device_id: "user_mobile_device",
     name: "",
     breed: "",
-    age: 0, // Calculated from birthDate
+    age: 0,
     weight: 0,
     allergies: [],
-    healthConditions: [],
-    birthDate: "",
+    health_conditions: [],
+    birth_date: "",
     gender: "male",
-    isNeutered: false,
+    is_neutered: false,
     image: "",
   });
 
@@ -75,6 +78,27 @@ export default function PetFormScreen({ navigation, route }: any) {
   const [healthInput, setHealthInput] = useState("");
   const [showAllergySheet, setShowAllergySheet] = useState(false);
 
+  // 현재 사용자 ID 가져오기
+  useEffect(() => {
+    const getCurrentUserId = async () => {
+      try {
+        const {
+          data: { user },
+        } = await supabase.auth.getUser();
+        if (user) {
+          setFormData((prev) => ({ ...prev, user_id: user.id }));
+        } else {
+          // 사용자가 로그인하지 않은 경우 기본값 사용
+          setFormData((prev) => ({ ...prev, user_id: "anonymous" }));
+        }
+      } catch (error) {
+        console.error("사용자 ID 가져오기 실패:", error);
+        setFormData((prev) => ({ ...prev, user_id: "anonymous" }));
+      }
+    };
+    getCurrentUserId();
+  }, []);
+
   useEffect(() => {
     if (initialData) {
       const { id, ...rest } = initialData;
@@ -83,10 +107,10 @@ export default function PetFormScreen({ navigation, route }: any) {
     }
   }, [initialData]);
 
-  const calculateAge = (birthDate: string) => {
-    if (!birthDate) return 0;
+  const calculateAge = (birth_date: string) => {
+    if (!birth_date) return 0;
     const today = new Date();
-    const birth = new Date(birthDate);
+    const birth = new Date(birth_date);
     let age = today.getFullYear() - birth.getFullYear();
     const m = today.getMonth() - birth.getMonth();
     if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
@@ -96,11 +120,11 @@ export default function PetFormScreen({ navigation, route }: any) {
   };
 
   useEffect(() => {
-    if (formData.birthDate) {
-      const age = calculateAge(formData.birthDate);
+    if (formData.birth_date) {
+      const age = calculateAge(formData.birth_date);
       setFormData((prev) => ({ ...prev, age }));
     }
-  }, [formData.birthDate]);
+  }, [formData.birth_date]);
 
   const filteredBreeds = breedList.filter((b) => b.includes(breedSearch));
 
@@ -130,7 +154,7 @@ export default function PetFormScreen({ navigation, route }: any) {
     if (healthInput.trim()) {
       setFormData({
         ...formData,
-        healthConditions: [...formData.healthConditions, healthInput.trim()],
+        health_conditions: [...formData.health_conditions, healthInput.trim()],
       });
       setHealthInput("");
     }
@@ -146,7 +170,9 @@ export default function PetFormScreen({ navigation, route }: any) {
   const handleRemoveHealth = (index: number) => {
     setFormData({
       ...formData,
-      healthConditions: formData.healthConditions.filter((_, i) => i !== index),
+      health_conditions: formData.health_conditions.filter(
+        (_, i) => i !== index
+      ),
     });
   };
 
@@ -275,10 +301,10 @@ export default function PetFormScreen({ navigation, route }: any) {
             >
               <Text
                 style={
-                  formData.birthDate ? styles.inputText : styles.placeholder
+                  formData.birth_date ? styles.inputText : styles.placeholder
                 }
               >
-                {formData.birthDate || "날짜 선택"}
+                {formData.birth_date || "날짜 선택"}
               </Text>
               <Ionicons name="calendar-outline" size={20} color="#9ca3af" />
             </TouchableOpacity>
@@ -300,12 +326,12 @@ export default function PetFormScreen({ navigation, route }: any) {
                 </View>
                 <Calendar
                   onDayPress={(day: any) => {
-                    setFormData({ ...formData, birthDate: day.dateString });
+                    setFormData({ ...formData, birth_date: day.dateString });
                     setShowDatePicker(false);
                   }}
                   maxDate={new Date().toISOString().split("T")[0]}
                   markedDates={{
-                    [formData.birthDate]: {
+                    [formData.birth_date]: {
                       selected: true,
                       selectedColor: Colors.primary,
                     },
@@ -372,12 +398,12 @@ export default function PetFormScreen({ navigation, route }: any) {
             <View style={styles.switchContainer}>
               <Text style={styles.label}>중성화 여부</Text>
               <Switch
-                value={formData.isNeutered}
+                value={formData.is_neutered}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, isNeutered: value })
+                  setFormData({ ...formData, is_neutered: value })
                 }
                 trackColor={{ false: "#d1d5db", true: Colors.primaryLight }}
-                thumbColor={formData.isNeutered ? Colors.primary : "#f3f4f6"}
+                thumbColor={formData.is_neutered ? Colors.primary : "#f3f4f6"}
               />
             </View>
           </View>
@@ -390,7 +416,11 @@ export default function PetFormScreen({ navigation, route }: any) {
               onPress={() => setShowAllergySheet(true)}
             >
               <Text style={styles.selectButtonText}>알러지 재료 선택하기</Text>
-              <Ionicons name="add-circle-outline" size={20} color={Colors.primary} />
+              <Ionicons
+                name="add-circle-outline"
+                size={20}
+                color={Colors.primary}
+              />
             </TouchableOpacity>
 
             <View style={styles.tagContainer}>
@@ -424,7 +454,7 @@ export default function PetFormScreen({ navigation, route }: any) {
               </TouchableOpacity>
             </View>
             <View style={styles.tagContainer}>
-              {formData.healthConditions.map((health, index) => (
+              {formData.health_conditions.map((health, index) => (
                 <View key={index} style={[styles.tagChip, styles.healthChip]}>
                   <Text style={styles.healthChipText}>{health}</Text>
                   <TouchableOpacity onPress={() => handleRemoveHealth(index)}>

@@ -266,7 +266,7 @@ export default function HomeScreen({ navigation }: any) {
                     key={recipe.id}
                     recipe={recipe}
                     onPress={() => handleRecipePress(recipe)}
-                    onLike={() => toggleLike(recipe.id)}
+                    onLike={() => toggleLike(Number(recipe.id))}
                     hasAllergy={hasAllergy}
                     style={{ marginBottom: 16 }}
                   />

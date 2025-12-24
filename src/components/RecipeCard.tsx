@@ -200,7 +200,7 @@ export default function RecipeCard({
         <View style={styles.infoRow}>
           <View style={styles.infoItem}>
             <Ionicons name="time-outline" size={14} color={Colors.textLight} />
-            <Text style={styles.infoText}>{recipe.cookTime}분</Text>
+            <Text style={styles.infoText}>{recipe.cook_time}분</Text>
           </View>
           <View style={styles.infoItem}>
             <Ionicons

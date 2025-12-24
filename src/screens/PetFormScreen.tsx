@@ -55,16 +55,19 @@ export default function PetFormScreen({ navigation, route }: any) {
   const initialData = route.params?.pet as Pet;
   const { addPet, updatePet } = usePet();
 
+  // [수정] user_id 속성 추가 (Type Error 해결)
   const [formData, setFormData] = useState<Omit<Pet, "id">>({
+    user_id: "anonymous_user",
+    device_id: "user_mobile_device",
     name: "",
     breed: "",
-    age: 0, // Calculated from birthDate
+    age: 0,
     weight: 0,
     allergies: [],
-    healthConditions: [],
-    birthDate: "",
+    health_conditions: [],
+    birth_date: "",
     gender: "male",
-    isNeutered: false,
+    is_neutered: false,
     image: "",
   });
 
@@ -83,24 +86,22 @@ export default function PetFormScreen({ navigation, route }: any) {
     }
   }, [initialData]);
 
-  const calculateAge = (birthDate: string) => {
-    if (!birthDate) return 0;
+  const calculateAge = (birth_date: string) => {
+    if (!birth_date) return 0;
     const today = new Date();
-    const birth = new Date(birthDate);
+    const birth = new Date(birth_date);
     let age = today.getFullYear() - birth.getFullYear();
     const m = today.getMonth() - birth.getMonth();
-    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) {
-      age--;
-    }
+    if (m < 0 || (m === 0 && today.getDate() < birth.getDate())) age--;
     return age;
   };
 
   useEffect(() => {
-    if (formData.birthDate) {
-      const age = calculateAge(formData.birthDate);
+    if (formData.birth_date) {
+      const age = calculateAge(formData.birth_date);
       setFormData((prev) => ({ ...prev, age }));
     }
-  }, [formData.birthDate]);
+  }, [formData.birth_date]);
 
   const filteredBreeds = breedList.filter((b) => b.includes(breedSearch));
 
@@ -111,7 +112,6 @@ export default function PetFormScreen({ navigation, route }: any) {
       aspect: [1, 1],
       quality: 1,
     });
-
     if (!result.canceled) {
       setFormData({ ...formData, image: result.assets[0].uri });
     }
@@ -130,7 +130,7 @@ export default function PetFormScreen({ navigation, route }: any) {
     if (healthInput.trim()) {
       setFormData({
         ...formData,
-        healthConditions: [...formData.healthConditions, healthInput.trim()],
+        health_conditions: [...formData.health_conditions, healthInput.trim()],
       });
       setHealthInput("");
     }
@@ -146,11 +146,13 @@ export default function PetFormScreen({ navigation, route }: any) {
   const handleRemoveHealth = (index: number) => {
     setFormData({
       ...formData,
-      healthConditions: formData.healthConditions.filter((_, i) => i !== index),
+      health_conditions: formData.health_conditions.filter(
+        (_, i) => i !== index
+      ),
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.name.trim()) {
       Alert.alert("오류", "반려견 이름을 입력해주세요.");
       return;
@@ -160,17 +162,37 @@ export default function PetFormScreen({ navigation, route }: any) {
       return;
     }
 
-    const petData = {
-      ...formData,
+    // [중요 수정] SQL 스키마 컬럼명에 정확히 맞춘 데이터 구성 (PGRST204 에러 방지)
+    const petDataForDB = {
+      user_id: formData.user_id,
+      name: formData.name,
+      breed: formData.breed,
+      age: formData.age,
       weight: parseFloat(weightInput) || 0,
+      gender: formData.gender,
+      is_neutered: formData.is_neutered, // [DB 컬럼명] is_neutered
+      image: formData.image,
+      allergies: formData.allergies,
+      health_conditions: formData.health_conditions, // [DB 컬럼명] health_conditions
+      birth_date: formData.birth_date, // [DB 컬럼명]
+      device_id: "user_mobile_device", // [필수 필드] NOT NULL 해결
     };
 
-    if (initialData) {
-      updatePet({ ...petData, id: initialData.id });
-    } else {
-      addPet(petData);
+    try {
+      if (initialData) {
+        // id를 숫자로 강제 변환하여 업데이트
+        await updatePet({ ...petDataForDB, id: Number(initialData.id) } as any);
+      } else {
+        await addPet(petDataForDB as any);
+      }
+      navigation.goBack();
+    } catch (error: any) {
+      console.error("저장 실패 상세:", error.message);
+      Alert.alert(
+        "실패",
+        "데이터베이스 저장에 실패했습니다. 컬럼명을 확인하세요."
+      );
     }
-    navigation.goBack();
   };
 
   return (
@@ -180,7 +202,6 @@ export default function PetFormScreen({ navigation, route }: any) {
         style={styles.flex}
       >
         <ScrollView style={styles.content}>
-          {/* Profile Image */}
           <View style={styles.imageSection}>
             <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
               {formData.image ? (
@@ -201,7 +222,6 @@ export default function PetFormScreen({ navigation, route }: any) {
             </TouchableOpacity>
           </View>
 
-          {/* Name */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>이름 *</Text>
             <TextInput
@@ -212,7 +232,6 @@ export default function PetFormScreen({ navigation, route }: any) {
             />
           </View>
 
-          {/* Breed */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>견종 *</Text>
             <TouchableOpacity
@@ -228,45 +247,6 @@ export default function PetFormScreen({ navigation, route }: any) {
             </TouchableOpacity>
           </View>
 
-          {/* Breed Modal */}
-          <Modal
-            visible={showBreedList}
-            animationType="slide"
-            transparent={true}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>견종 선택</Text>
-                  <TouchableOpacity onPress={() => setShowBreedList(false)}>
-                    <Ionicons name="close" size={24} color="#111827" />
-                  </TouchableOpacity>
-                </View>
-                <TextInput
-                  style={styles.searchInput}
-                  placeholder="견종 검색"
-                  value={breedSearch}
-                  onChangeText={setBreedSearch}
-                />
-                <ScrollView style={styles.breedList}>
-                  {filteredBreeds.map((breed, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={styles.breedItem}
-                      onPress={() => {
-                        setFormData({ ...formData, breed });
-                        setShowBreedList(false);
-                      }}
-                    >
-                      <Text style={styles.breedText}>{breed}</Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            </View>
-          </Modal>
-
-          {/* BirthDate */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>생년월일</Text>
             <TouchableOpacity
@@ -275,47 +255,15 @@ export default function PetFormScreen({ navigation, route }: any) {
             >
               <Text
                 style={
-                  formData.birthDate ? styles.inputText : styles.placeholder
+                  formData.birth_date ? styles.inputText : styles.placeholder
                 }
               >
-                {formData.birthDate || "날짜 선택"}
+                {formData.birth_date || "날짜 선택"}
               </Text>
               <Ionicons name="calendar-outline" size={20} color="#9ca3af" />
             </TouchableOpacity>
           </View>
 
-          {/* Date Picker Modal */}
-          <Modal
-            visible={showDatePicker}
-            animationType="slide"
-            transparent={true}
-          >
-            <View style={styles.modalOverlay}>
-              <View style={styles.modalContent}>
-                <View style={styles.modalHeader}>
-                  <Text style={styles.modalTitle}>생년월일 선택</Text>
-                  <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                    <Ionicons name="close" size={24} color="#111827" />
-                  </TouchableOpacity>
-                </View>
-                <Calendar
-                  onDayPress={(day: any) => {
-                    setFormData({ ...formData, birthDate: day.dateString });
-                    setShowDatePicker(false);
-                  }}
-                  maxDate={new Date().toISOString().split("T")[0]}
-                  markedDates={{
-                    [formData.birthDate]: {
-                      selected: true,
-                      selectedColor: Colors.primary,
-                    },
-                  }}
-                />
-              </View>
-            </View>
-          </Modal>
-
-          {/* Weight */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>체중 (kg)</Text>
             <TextInput
@@ -327,7 +275,6 @@ export default function PetFormScreen({ navigation, route }: any) {
             />
           </View>
 
-          {/* Gender */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>성별</Text>
             <View style={styles.radioGroup}>
@@ -367,22 +314,21 @@ export default function PetFormScreen({ navigation, route }: any) {
             </View>
           </View>
 
-          {/* Neutered */}
           <View style={styles.formGroup}>
             <View style={styles.switchContainer}>
               <Text style={styles.label}>중성화 여부</Text>
               <Switch
-                value={formData.isNeutered}
+                value={formData.is_neutered}
                 onValueChange={(value) =>
-                  setFormData({ ...formData, isNeutered: value })
+                  setFormData({ ...formData, is_neutered: value })
                 }
                 trackColor={{ false: "#d1d5db", true: Colors.primaryLight }}
-                thumbColor={formData.isNeutered ? Colors.primary : "#f3f4f6"}
+                thumbColor={formData.is_neutered ? Colors.primary : "#f3f4f6"}
               />
             </View>
           </View>
 
-          {/* Allergies */}
+          {/* 알러지 및 건강상태 섹션 동일 */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>알러지 (재료 선택)</Text>
             <TouchableOpacity
@@ -390,9 +336,12 @@ export default function PetFormScreen({ navigation, route }: any) {
               onPress={() => setShowAllergySheet(true)}
             >
               <Text style={styles.selectButtonText}>알러지 재료 선택하기</Text>
-              <Ionicons name="add-circle-outline" size={20} color={Colors.primary} />
+              <Ionicons
+                name="add-circle-outline"
+                size={20}
+                color={Colors.primary}
+              />
             </TouchableOpacity>
-
             <View style={styles.tagContainer}>
               {formData.allergies.map((allergy, index) => (
                 <View key={index} style={[styles.tagChip, styles.allergyChip]}>
@@ -405,7 +354,6 @@ export default function PetFormScreen({ navigation, route }: any) {
             </View>
           </View>
 
-          {/* Health Conditions */}
           <View style={styles.formGroup}>
             <Text style={styles.label}>건강 상태</Text>
             <View style={styles.tagInputContainer}>
@@ -424,7 +372,7 @@ export default function PetFormScreen({ navigation, route }: any) {
               </TouchableOpacity>
             </View>
             <View style={styles.tagContainer}>
-              {formData.healthConditions.map((health, index) => (
+              {formData.health_conditions.map((health, index) => (
                 <View key={index} style={[styles.tagChip, styles.healthChip]}>
                   <Text style={styles.healthChipText}>{health}</Text>
                   <TouchableOpacity onPress={() => handleRemoveHealth(index)}>
@@ -434,7 +382,6 @@ export default function PetFormScreen({ navigation, route }: any) {
               ))}
             </View>
           </View>
-
           <View style={styles.bottomSpacer} />
         </ScrollView>
 
@@ -446,6 +393,66 @@ export default function PetFormScreen({ navigation, route }: any) {
           </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
+
+      {/* 모달창 동일 */}
+      <Modal visible={showBreedList} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>견종 선택</Text>
+              <TouchableOpacity onPress={() => setShowBreedList(false)}>
+                <Ionicons name="close" size={24} color="#111827" />
+              </TouchableOpacity>
+            </View>
+            <TextInput
+              style={styles.searchInput}
+              placeholder="견종 검색"
+              value={breedSearch}
+              onChangeText={setBreedSearch}
+            />
+            <ScrollView style={styles.breedList}>
+              {filteredBreeds.map((breed, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={styles.breedItem}
+                  onPress={() => {
+                    setFormData({ ...formData, breed });
+                    setShowBreedList(false);
+                  }}
+                >
+                  <Text style={styles.breedText}>{breed}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      <Modal visible={showDatePicker} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>생년월일 선택</Text>
+              <TouchableOpacity onPress={() => setShowDatePicker(false)}>
+                <Ionicons name="close" size={24} color="#111827" />
+              </TouchableOpacity>
+            </View>
+            <Calendar
+              onDayPress={(day: any) => {
+                setFormData({ ...formData, birth_date: day.dateString });
+                setShowDatePicker(false);
+              }}
+              maxDate={new Date().toISOString().split("T")[0]}
+              markedDates={{
+                [formData.birth_date]: {
+                  selected: true,
+                  selectedColor: Colors.primary,
+                },
+              }}
+            />
+          </View>
+        </View>
+      </Modal>
 
       <IngredientSelector
         visible={showAllergySheet}
@@ -460,25 +467,11 @@ export default function PetFormScreen({ navigation, route }: any) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "white",
-  },
-  flex: {
-    flex: 1,
-  },
-  content: {
-    flex: 1,
-    padding: 20,
-    paddingTop: 10,
-  },
-  imageSection: {
-    alignItems: "center",
-    marginBottom: 24,
-  },
-  imageButton: {
-    position: "relative",
-  },
+  container: { flex: 1, backgroundColor: "white" },
+  flex: { flex: 1 },
+  content: { flex: 1, padding: 20, paddingTop: 10 },
+  imageSection: { alignItems: "center", marginBottom: 24 },
+  imageButton: { position: "relative" },
   profileImage: {
     width: 100,
     height: 100,
@@ -497,11 +490,7 @@ const styles = StyleSheet.create({
     borderColor: Colors.borderLight,
     borderStyle: "dashed",
   },
-  imagePlaceholderText: {
-    fontSize: 12,
-    color: Colors.textLight,
-    marginTop: 4,
-  },
+  imagePlaceholderText: { fontSize: 12, color: Colors.textLight, marginTop: 4 },
   editIconBadge: {
     position: "absolute",
     bottom: 0,
@@ -515,9 +504,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: "white",
   },
-  formGroup: {
-    marginBottom: 20,
-  },
+  formGroup: { marginBottom: 20 },
   label: {
     fontSize: 14,
     fontWeight: "bold",
@@ -532,14 +519,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  inputText: {
-    fontSize: 16,
-    color: Colors.text,
-  },
-  placeholder: {
-    fontSize: 16,
-    color: "#9ca3af",
-  },
+  inputText: { fontSize: 16, color: Colors.text },
+  placeholder: { fontSize: 16, color: "#9ca3af" },
   searchInput: {
     backgroundColor: Colors.lightBackground,
     borderRadius: 8,
@@ -547,10 +528,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 12,
   },
-  radioGroup: {
-    flexDirection: "row",
-    gap: 12,
-  },
+  radioGroup: { flexDirection: "row", gap: 12 },
   radioButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
@@ -563,23 +541,14 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.primaryLight,
     borderColor: Colors.primary,
   },
-  radioButtonText: {
-    color: Colors.textLight,
-  },
-  radioButtonTextActive: {
-    color: Colors.primaryDark,
-    fontWeight: "bold",
-  },
+  radioButtonText: { color: Colors.textLight },
+  radioButtonTextActive: { color: Colors.primaryDark, fontWeight: "bold" },
   switchContainer: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
   },
-  tagInputContainer: {
-    flexDirection: "row",
-    gap: 8,
-    marginBottom: 8,
-  },
+  tagInputContainer: { flexDirection: "row", gap: 8, marginBottom: 8 },
   tagInput: {
     flex: 1,
     backgroundColor: Colors.lightBackground,
@@ -608,25 +577,11 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     borderRadius: 16,
   },
-  allergyChip: {
-    backgroundColor: "#fee2e2",
-  },
-  allergyChipText: {
-    marginRight: 4,
-    color: "#b91c1c",
-    fontWeight: "600",
-  },
-  healthChip: {
-    backgroundColor: "#fef9c3",
-  },
-  healthChipText: {
-    marginRight: 4,
-    color: "#854d0e",
-    fontWeight: "600",
-  },
-  bottomSpacer: {
-    height: 40,
-  },
+  allergyChip: { backgroundColor: "#fee2e2" },
+  allergyChipText: { marginRight: 4, color: "#b91c1c", fontWeight: "600" },
+  healthChip: { backgroundColor: "#fef9c3" },
+  healthChipText: { marginRight: 4, color: "#854d0e", fontWeight: "600" },
+  bottomSpacer: { height: 40 },
   submitButtonContainer: {
     padding: 16,
     borderTopWidth: 1,
@@ -639,13 +594,7 @@ const styles = StyleSheet.create({
     padding: 16,
     alignItems: "center",
   },
-  submitButtonText: {
-    color: "white",
-    fontWeight: "bold",
-    fontSize: 16,
-  },
-
-  // Select Button
+  submitButtonText: { color: "white", fontWeight: "bold", fontSize: 16 },
   selectButton: {
     backgroundColor: Colors.lightBackground,
     borderRadius: 8,
@@ -656,12 +605,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "#e5e7eb",
   },
-  selectButtonText: {
-    fontSize: 14,
-    color: Colors.text,
-  },
-
-  // Modal
+  selectButtonText: { fontSize: 14, color: Colors.text },
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.5)",
@@ -680,21 +624,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-  modalTitle: {
-    fontSize: 20,
-    fontWeight: "bold",
-    color: Colors.textDark,
-  },
-  breedList: {
-    flex: 1,
-  },
+  modalTitle: { fontSize: 20, fontWeight: "bold", color: Colors.textDark },
+  breedList: { flex: 1 },
   breedItem: {
     paddingVertical: 16,
     borderBottomWidth: 1,
     borderBottomColor: Colors.lightBackground,
   },
-  breedText: {
-    fontSize: 16,
-    color: Colors.text,
-  },
+  breedText: { fontSize: 16, color: Colors.text },
 });

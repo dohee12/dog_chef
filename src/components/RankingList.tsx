@@ -142,7 +142,7 @@ export default function RankingList({ recipes, onRecipePress, onLike }: Props) {
           recipe={recipe}
           index={index}
           onPress={() => onRecipePress(recipe)}
-          onLike={() => onLike(recipe.id)}
+          onLike={() => onLike(Number(recipe.id))}
         />
       ))}
     </View>

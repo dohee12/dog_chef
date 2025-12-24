@@ -28,7 +28,7 @@ export default function RecipeFormScreen({ navigation }: any) {
     description: "",
     image: "",
     category: "주식",
-    cookTime: "",
+    cook_time: "",
     servings: "",
     difficulty: "보통",
     author: "",
@@ -114,7 +114,7 @@ export default function RecipeFormScreen({ navigation }: any) {
 
     addRecipe({
       ...formData,
-      cookTime: parseInt(formData.cookTime) || 0,
+      cook_time: parseInt(formData.cook_time) || 0,
       servings: parseInt(formData.servings) || 1,
       author: formData.author || "익명",
       image:
@@ -122,7 +122,7 @@ export default function RecipeFormScreen({ navigation }: any) {
         "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80", // Default food image
       reviews: 0,
       rating: 0,
-      reviewList: [],
+      review_list: [],
       nutrition: {
         calories: 0,
         protein: 0,
@@ -132,7 +132,7 @@ export default function RecipeFormScreen({ navigation }: any) {
         calcium: 0,
         phosphorus: 0,
       },
-    });
+    } as any);
 
     navigation.goBack();
   };
@@ -248,9 +248,9 @@ export default function RecipeFormScreen({ navigation }: any) {
               <TextInput
                 style={styles.input}
                 placeholder="30"
-                value={formData.cookTime}
+                value={formData.cook_time}
                 onChangeText={(text) =>
-                  setFormData({ ...formData, cookTime: text })
+                  setFormData({ ...formData, cook_time: text })
                 }
                 keyboardType="numeric"
               />

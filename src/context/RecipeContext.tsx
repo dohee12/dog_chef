@@ -1,55 +1,25 @@
 import { supabase } from "@/lib/supabase";
 import { Recipe, Review } from "@/types/Recipe";
 import { mockRecipes } from "@/utils/mockData";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
 interface RecipeContextType {
   recipes: Recipe[];
   ingredients: string[];
   addRecipe: (recipe: Omit<Recipe, "id">) => Promise<void>;
-  updateRecipe: (recipe: Recipe) => Promise<void>;
-  toggleLike: (id: number) => void;
-  addReview: (recipeId: number, review: Omit<Review, "id">) => void;
+  toggleLike: (id: number | string) => Promise<void>;
   addIngredient: (ingredient: string) => void;
   loadRecipes: () => Promise<void>;
+  addReview: (
+    recipeId: number | string,
+    review: Omit<Review, "id">
+  ) => Promise<void>;
 }
 
-const DEFAULT_INGREDIENTS = [
-  "닭가슴살",
-  "고구마",
-  "연어",
-  "바나나",
-  "당근",
-  "브로콜리",
-  "계란",
-  "우유",
-  "단호박",
-  "양배추",
-  "시금치",
-  "오리고기",
-  "소고기",
-  "황태",
-  "오이",
-  "파프리카",
-  "사과",
-  "블루베리",
-  "토마토",
-  "두부",
-];
-
+const DEFAULT_INGREDIENTS = ["닭가슴살", "고구마", "연어", "당근", "브로콜리"];
 const RECIPE_TTL = 24 * 60 * 60 * 1000;
 
-const RecipeContext = createContext<RecipeContextType>({
-  recipes: [],
-  ingredients: DEFAULT_INGREDIENTS,
-  addRecipe: async () => {},
-  updateRecipe: async () => {},
-  toggleLike: () => {},
-  addReview: () => {},
-  addIngredient: () => {},
-  loadRecipes: async () => {},
-});
+const RecipeContext = createContext<RecipeContextType | undefined>(undefined);
 
 export const RecipeProvider = ({ children }: { children: React.ReactNode }) => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
@@ -57,138 +27,110 @@ export const RecipeProvider = ({ children }: { children: React.ReactNode }) => {
 
   useEffect(() => {
     loadRecipes();
-    loadIngredients();
   }, []);
-
-  const filterExpiredRecipes = (recipeList: Recipe[]) => {
-    const now = new Date().getTime();
-    return recipeList.filter((recipe) => {
-      if (recipe.isUserCreated && recipe.createdDate) {
-        const createdTime = new Date(recipe.createdDate).getTime();
-        return now - createdTime < RECIPE_TTL;
-      }
-      return true;
-    });
-  };
 
   const loadRecipes = async () => {
     try {
-      // DB 컬럼명(created_at)으로 정렬해야 함
-      const { data, error } = await supabase
+      const cutoffTime = new Date(Date.now() - RECIPE_TTL).toISOString();
+      const { data: recipesData, error } = await supabase
         .from("recipes")
         .select("*")
+        .gt("created_at", cutoffTime)
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      if (data) {
-        // DB 데이터(snake_case) -> 앱 데이터(camelCase) 변환
-        const mappedRecipes: Recipe[] = data.map((item: any) => ({
-          ...item,
-          // DB엔 cook_time, 앱엔 cookTime
-          cookTime: item.cook_time,
-          // DB엔 created_at, 앱엔 createdDate
-          createdDate: item.created_at,
-          // DB엔 is_user_created, 앱엔 isUserCreated
-          isUserCreated: item.is_user_created,
-          // DB엔 safety_score, 앱엔 safetyScore
-          safetyScore: item.safety_score,
-          // 나머지(id, title, ingredients 등)는 이름 같음
-        }));
-
-        const validRecipes = filterExpiredRecipes(mappedRecipes);
-        setRecipes(validRecipes);
+      // [좋아요 상태 연동]
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      let likedIds: number[] = [];
+      if (user) {
+        const { data: likes } = await supabase
+          .from("likes")
+          .select("recipe_id")
+          .eq("user_id", user.id);
+        likedIds = likes?.map((l) => Number(l.recipe_id)) || [];
       }
-    } catch (error) {
-      console.error("Failed to load recipes from Supabase:", error);
-      // 에러 시 mockData 로드 (백업)
-      setRecipes(mockRecipes);
-    }
-  };
 
-  const loadIngredients = async () => {
-    try {
-      const storedIngredients = await AsyncStorage.getItem("customIngredients");
-      if (storedIngredients) {
-        const customIngredients = JSON.parse(storedIngredients);
-        const merged = Array.from(
-          new Set([...DEFAULT_INGREDIENTS, ...customIngredients])
+      if (recipesData) {
+        setRecipes(
+          recipesData.map((item) => ({
+            ...item,
+            id: Number(item.id),
+            isLiked: likedIds.includes(Number(item.id)),
+          })) as Recipe[]
         );
-        setIngredients(merged);
       }
     } catch (error) {
-      console.error("Failed to load ingredients", error);
-    }
-  };
-
-  const addIngredient = async (newIngredient: string) => {
-    if (ingredients.includes(newIngredient)) return;
-    const newIngredients = [...ingredients, newIngredient];
-    setIngredients(newIngredients);
-    const customOnly = newIngredients.filter(
-      (i) => !DEFAULT_INGREDIENTS.includes(i)
-    );
-    try {
-      await AsyncStorage.setItem(
-        "customIngredients",
-        JSON.stringify(customOnly)
-      );
-    } catch (error) {
-      console.error("Failed to save ingredient", error);
+      console.error("로드 실패:", error);
+      setRecipes(mockRecipes);
     }
   };
 
   const addRecipe = async (recipeData: Omit<Recipe, "id">) => {
     try {
-      // 앱 데이터 -> DB 데이터(snake_case) 변환
-      const newRecipePayload = {
-        title: recipeData.title,
-        description: recipeData.description,
-        image: recipeData.image,
-        category: recipeData.category,
-        author: recipeData.author,
-        ingredients: recipeData.ingredients, // JSONB
-        instructions: recipeData.instructions, // JSONB
-        tags: recipeData.tags, // JSONB
-        nutrition: recipeData.nutrition, // JSONB
-        rating: 0,
-        reviews: 0,
-        // 변환 필요한 컬럼들
-        cook_time: recipeData.cookTime,
-        servings: recipeData.servings,
-        difficulty: recipeData.difficulty,
-        is_user_created: true,
-        // created_at은 DB가 자동 생성하므로 생략 가능
-      };
-
-      const { error } = await supabase
-        .from("recipes")
-        .insert([newRecipePayload]);
-
+      // [수정] 타입이 이미 Snake Case이므로 recipeData를 그대로 넣어도 됩니다.
+      const { error } = await supabase.from("recipes").insert([recipeData]);
       if (error) throw error;
-
-      // 성공하면 목록 다시 불러오기
-      loadRecipes();
+      await loadRecipes();
     } catch (error) {
-      console.error("Failed to add recipe to Supabase:", error);
+      alert("레시피 등록에 실패했습니다");
     }
   };
 
-  const updateRecipe = async (updatedRecipe: Recipe) => {
-    // 업데이트 로직 (생략)
+  const toggleLike = async (id: number | string) => {
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) return alert("로그인이 필요합니다.");
+
+      const isLiked = recipes.find((r) => r.id === id)?.isLiked;
+
+      if (isLiked) {
+        await supabase
+          .from("likes")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("recipe_id", id);
+      } else {
+        await supabase
+          .from("likes")
+          .insert([{ user_id: user.id, recipe_id: id, device_id: "mobile" }]);
+      }
+
+      setRecipes((prev) =>
+        prev.map((r) => (r.id === id ? { ...r, isLiked: !isLiked } : r))
+      );
+    } catch (error) {
+      console.error("좋아요 토글 실패:", error);
+    }
   };
 
-  const toggleLike = async (id: number) => {
-    // 찜하기는 로컬에서만 (개인화)
-    const newRecipes = recipes.map((recipe) =>
-      recipe.id === id ? { ...recipe, isLiked: !recipe.isLiked } : recipe
-    );
-    setRecipes(newRecipes);
-    // 필요 시 AsyncStorage에 찜 목록 ID만 따로 저장하는 로직 추가 가능
+  const addIngredient = (ing: string) => {
+    if (!ingredients.includes(ing)) setIngredients([...ingredients, ing]);
   };
 
-  const addReview = (recipeId: number, reviewData: Omit<Review, "id">) => {
-    // 리뷰 로직 (생략)
+  const addReview = async (
+    recipeId: number | string,
+    review: Omit<Review, "id">
+  ) => {
+    try {
+      console.log(`${recipeId}번에 리뷰 추가`, review);
+      setRecipes((prev) =>
+        prev.map((r) =>
+          Number(r.id) === Number(recipeId)
+            ? {
+                ...r,
+                review_list: [review as Review, ...(r.review_list || [])],
+              }
+            : r
+        )
+      );
+    } catch (error) {
+      console.error("리뷰 추가 실패:", error);
+    }
   };
 
   return (
@@ -197,11 +139,10 @@ export const RecipeProvider = ({ children }: { children: React.ReactNode }) => {
         recipes,
         ingredients,
         addRecipe,
-        updateRecipe,
         toggleLike,
-        addReview,
         addIngredient,
         loadRecipes,
+        addReview,
       }}
     >
       {children}
@@ -209,4 +150,9 @@ export const RecipeProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-export const useRecipe = () => useContext(RecipeContext);
+export const useRecipe = () => {
+  const context = useContext(RecipeContext);
+  if (!context)
+    throw new Error("useRecipe는 RecipeProvider 내에서 사용해야 합니다.");
+  return context;
+};
