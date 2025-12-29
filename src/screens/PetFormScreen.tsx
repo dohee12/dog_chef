@@ -57,7 +57,7 @@ export default function PetFormScreen({ navigation, route }: any) {
 
   // [수정] user_id 속성 추가 (Type Error 해결)
   const [formData, setFormData] = useState<Omit<Pet, "id">>({
-    user_id: "anonymous_user",
+    user_id: "00000000-0000-0000-0000-000000000000",
     device_id: "user_mobile_device",
     name: "",
     breed: "",
@@ -107,7 +107,7 @@ export default function PetFormScreen({ navigation, route }: any) {
 
   const pickImage = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      mediaTypes: "images",
       allowsEditing: true,
       aspect: [1, 1],
       quality: 1,

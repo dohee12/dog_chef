@@ -70,11 +70,22 @@ export const RecipeProvider = ({ children }: { children: React.ReactNode }) => {
 
   const addRecipe = async (recipeData: Omit<Recipe, "id">) => {
     try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+
       // [수정] 타입이 이미 Snake Case이므로 recipeData를 그대로 넣어도 됩니다.
-      const { error } = await supabase.from("recipes").insert([recipeData]);
+      const { error } = await supabase.from("recipes").insert([
+        {
+          ...recipeData,
+          user_id: user?.id || null,
+          is_user_created: true,
+        },
+      ]);
       if (error) throw error;
       await loadRecipes();
-    } catch (error) {
+    } catch (error: any) {
+      console.error("레시피 등록 실패:", error.message);
       alert("레시피 등록에 실패했습니다");
     }
   };

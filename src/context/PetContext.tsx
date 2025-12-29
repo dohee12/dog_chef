@@ -26,20 +26,21 @@ export const PetProvider = ({ children }: { children: React.ReactNode }) => {
   const loadPets = async () => {
     setLoading(true);
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+      // const {
+      //   data: { user },
+      // } = await supabase.auth.getUser();
 
-      // [중요] 로그인 안되어 있으면 목록 비움 (보안)
-      if (!user) {
-        setPets([]);
-        return;
-      }
+      // // [중요] 로그인 안되어 있으면 목록 비움 (보안)
+      // if (!user) {
+      //   setPets([]);
+      //   return;
+      // }
 
       const { data, error } = await supabase
         .from("pets")
         .select("*")
-        .eq("user_id", user.id) // 내 강아지만 가져오기
+        // .eq("user_id", user.id) // 내 강아지만 가져오기
+
         .order("created_at", { ascending: false });
 
       if (error) throw error;
