@@ -43,4 +43,13 @@ export interface Recipe {
   is_user_created: boolean;
   isLiked: boolean;
   review_list: Review[];
+  // 새로운 필드들 (Supabase 데이터베이스 스키마와 일치)
+  calories?: number;
+  protein?: number;
+  fat?: number;
+  carbs?: number;
+  fiber?: number;
+  likes_count?: number;
+  reviews_count?: number;
+  average_rating?: number;
 }

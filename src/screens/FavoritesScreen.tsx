@@ -1,12 +1,15 @@
 import RecipeCard from "@/components/RecipeCard";
 import Colors from "@/constants/Colors";
+import { useAuth } from "@/context/AuthContext";
 import { usePet } from "@/context/PetContext";
 import { useRecipe } from "@/context/RecipeContext";
 import { Recipe } from "@/types/Recipe";
 import { checkAllergy } from "@/utils/allergyMappings";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useState } from "react";
 import {
+  Alert,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -16,9 +19,32 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function FavoritesScreen({ navigation }: any) {
+  const { user } = useAuth();
   const { recipes, toggleLike, loadRecipes } = useRecipe();
   const { pets } = usePet();
   const [refreshing, setRefreshing] = useState(false);
+
+  // 화면에 포커스될 때마다 로그인 체크
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) {
+        Alert.alert(
+          "로그인 필요",
+          "찜한 레시피를 보려면 로그인이 필요합니다.",
+          [
+            {
+              text: "로그인",
+              onPress: () => navigation.navigate("Login"),
+            },
+            {
+              text: "취소",
+              style: "cancel",
+            },
+          ]
+        );
+      }
+    }, [user, navigation])
+  );
 
   const favoriteRecipes = recipes.filter((recipe) => recipe.isLiked);
 

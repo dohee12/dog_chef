@@ -1,6 +1,8 @@
 import CategoryTabs from "@/components/CategoryTabs";
 import IngredientSelector from "@/components/IngredientSelector";
+import LoginPromptBanner from "@/components/LoginPromptBanner";
 import PetCuration from "@/components/PetCuration";
+import ProfileMenu from "@/components/ProfileMenu";
 import RankingList from "@/components/RankingList";
 import RecipeCard from "@/components/RecipeCard";
 import Colors from "@/constants/Colors";
@@ -157,7 +159,7 @@ export default function HomeScreen({ navigation }: any) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* 헤더 (로고) */}
+      {/* 헤더 (로고 + 프로필) */}
       <View style={styles.header}>
         <TouchableOpacity
           style={styles.logoContainer}
@@ -171,6 +173,9 @@ export default function HomeScreen({ navigation }: any) {
           />
           <Text style={styles.logoText}>멍슐랭</Text>
         </TouchableOpacity>
+
+        {/* 프로필 메뉴 */}
+        <ProfileMenu />
       </View>
 
       <ScrollView
@@ -181,6 +186,9 @@ export default function HomeScreen({ navigation }: any) {
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
       >
+        {/* 로그인 유도 배너 */}
+        <LoginPromptBanner />
+
         {/* 타이틀 섹션 */}
         <View style={styles.titleSection}>
           <Text style={styles.title}>멍슐랭 레시피</Text>
@@ -381,11 +389,12 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#e5e7eb",
-    alignItems: "center",
-    justifyContent: "center",
   },
   logoContainer: {
     flexDirection: "row",

@@ -1,0 +1,12 @@
+# 이 파일을 .env로 복사하여 사용하세요
+# cp env_example.txt .env
+
+# Supabase 설정
+# Supabase 프로젝트 대시보드에서 확인 가능합니다: https://app.supabase.com/
+EXPO_PUBLIC_SUPABASE_URL=your_supabase_project_url
+EXPO_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+
+# 예시:
+# EXPO_PUBLIC_SUPABASE_URL=https://xxxxxxxxxxxxx.supabase.co
+# EXPO_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+

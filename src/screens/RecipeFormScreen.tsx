@@ -1,8 +1,10 @@
 import Colors from "@/constants/Colors";
+import { useAuth } from "@/context/AuthContext";
 import { useRecipe } from "@/context/RecipeContext";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import * as ImagePicker from "expo-image-picker";
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import {
   Alert,
   Image,
@@ -17,24 +19,51 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function RecipeFormScreen({ navigation }: any) {
-  const { addRecipe } = useRecipe();
+export default function RecipeFormScreen({ navigation, route }: any) {
+  const { user } = useAuth();
+  const { addRecipe, updateRecipe } = useRecipe();
   const [tagInput, setTagInput] = useState("");
   const [ingredientInput, setIngredientInput] = useState("");
   const [instructionInput, setInstructionInput] = useState("");
 
+  // 수정 모드 체크
+  const editingRecipe = route.params?.recipe;
+  const isEditMode = !!editingRecipe;
+
+  // 화면에 포커스될 때마다 로그인 체크
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) {
+        Alert.alert("로그인 필요", "레시피를 작성하려면 로그인이 필요합니다.", [
+          {
+            text: "로그인",
+            onPress: () => {
+              navigation.goBack(); // 현재 화면 닫기
+              navigation.navigate("Login");
+            },
+          },
+          {
+            text: "취소",
+            style: "cancel",
+            onPress: () => navigation.goBack(),
+          },
+        ]);
+      }
+    }, [user, navigation])
+  );
+
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    image: "",
-    category: "주식",
-    cook_time: "",
-    servings: "",
-    difficulty: "보통",
-    author: "",
-    tags: [] as string[],
-    ingredients: [] as string[],
-    instructions: [] as string[],
+    title: editingRecipe?.title || "",
+    description: editingRecipe?.description || "",
+    image: editingRecipe?.image || "",
+    category: editingRecipe?.category || "주식",
+    cook_time: editingRecipe?.cook_time?.toString() || "",
+    servings: editingRecipe?.servings?.toString() || "",
+    difficulty: editingRecipe?.difficulty || "보통",
+    author: editingRecipe?.author || "",
+    tags: editingRecipe?.tags || [],
+    ingredients: editingRecipe?.ingredients || [],
+    instructions: editingRecipe?.instructions || [],
   });
 
   const pickImage = async () => {
@@ -98,7 +127,7 @@ export default function RecipeFormScreen({ navigation }: any) {
     });
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!formData.title.trim()) {
       Alert.alert("오류", "레시피 제목을 입력해주세요.");
       return;
@@ -112,7 +141,7 @@ export default function RecipeFormScreen({ navigation }: any) {
       return;
     }
 
-    addRecipe({
+    const recipeData = {
       title: formData.title,
       description: formData.description,
       image:
@@ -126,20 +155,18 @@ export default function RecipeFormScreen({ navigation }: any) {
       tags: formData.tags,
       ingredients: formData.ingredients,
       instructions: formData.instructions,
-      reviews: 0,
-      rating: 0,
-      review_list: [],
       is_user_created: true,
-      nutrition: {
-        calories: 0,
-        protein: 0,
-        fat: 0,
-        carbs: 0,
-        fiber: 0,
-        calcium: 0,
-        phosphorus: 0,
-      },
-    } as any);
+    } as any;
+
+    if (isEditMode) {
+      // 수정 모드
+      await updateRecipe(Number(editingRecipe.id), recipeData);
+    } else {
+      // 새 레시피 작성 모드
+      await addRecipe({
+        ...recipeData,
+      });
+    }
 
     navigation.goBack();
   };

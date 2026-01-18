@@ -1,8 +1,14 @@
 import AllergyWarning from "@/components/AllergyWarning";
 import ReviewSystem from "@/components/ReviewSystem";
+import { NutritionInfo } from "@/components/NutritionInfo";
+import { RecipeActions } from "@/components/RecipeActions";
+import { ReviewList } from "@/components/ReviewList";
+import { ReviewForm } from "@/components/ReviewForm";
 import Colors from "@/constants/Colors";
 import { usePet } from "@/context/PetContext";
 import { useRecipe } from "@/context/RecipeContext";
+import { useAuth } from "@/context/AuthContext";
+import { useReviews } from "@/context/ReviewContext";
 import { Recipe } from "@/types/Recipe";
 import { getAllergicIngredients } from "@/utils/allergyMappings";
 import { getDailyNeeds } from "@/utils/nutritionCalculator";
@@ -20,11 +26,14 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RecipeDetailScreen({ route, navigation }: any) {
   const { recipe: initialRecipe } = route.params as { recipe: Recipe };
-  const { recipes, toggleLike, addReview } = useRecipe();
+  const { recipes, toggleLike } = useRecipe();
   const { pets } = usePet();
+  const { user, requireAuth } = useAuth();
+  const { reviews } = useReviews();
   const [activeTab, setActiveTab] = useState<"nutrition" | "reviews">(
     "nutrition"
   );
+  const [reviewFormVisible, setReviewFormVisible] = useState(false);
 
   // Get latest recipe data from context to ensure updates (like review count) are reflected
   const recipe =
@@ -42,6 +51,17 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
       </SafeAreaView>
     );
   }
+
+  const matchingReviews = reviews.filter(
+    (review) => Number(review.recipe_id) === Number(recipe.id)
+  );
+  const reviewsCount =
+    matchingReviews.length > 0 ? matchingReviews.length : recipe.reviews_count || 0;
+  const averageRating =
+    matchingReviews.length > 0
+      ? matchingReviews.reduce((sum, review) => sum + review.rating, 0) /
+        matchingReviews.length
+      : recipe.average_rating || 0;
 
   const { allergicIngredients, affectedPets } = getAllergicIngredients(
     recipe,
@@ -141,14 +161,24 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
             </View>
           </View>
 
-          {/* Rating */}
+          {/* Recipe Actions (수정/삭제 버튼) */}
+          <RecipeActions recipe={recipe} />
+
+          {/* Rating & Stats */}
           <View style={styles.ratingCard}>
             <View style={styles.ratingLeft}>
               <Ionicons name="star" size={20} color="#eab308" />
-              <Text style={styles.ratingValue}>{recipe.rating.toFixed(1)}</Text>
-              <Text style={styles.reviewCount}>({recipe.reviews}개 리뷰)</Text>
+              <Text style={styles.ratingValue}>
+                {averageRating.toFixed(1)}
+              </Text>
+              <Text style={styles.reviewCount}>
+                ({reviewsCount}개 리뷰)
+              </Text>
             </View>
-            <Text style={styles.author}>작성자: {recipe.author}</Text>
+            <View style={styles.statsRight}>
+              <Ionicons name="heart" size={16} color={Colors.primary} />
+              <Text style={styles.likesCount}>{recipe.likes_count || 0}</Text>
+            </View>
           </View>
 
           {/* Tags */}
@@ -233,83 +263,40 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
           </View>
 
           {activeTab === "nutrition" ? (
-            recipe.nutrition ? (
-              <View style={styles.nutritionGrid}>
-                {dailyNeeds && (
-                  <View style={styles.nutritionSummary}>
-                    <Text style={styles.summaryTitle}>
-                      {targetPet?.name}의 하루 권장량 대비
-                    </Text>
-                    <Text style={styles.summarySubtitle}>
-                      (DER: {dailyNeeds.dailyCalories}kcal 기준)
-                    </Text>
-                  </View>
-                )}
-
-                <View
-                  style={[styles.nutritionCard, { backgroundColor: "#dbeafe" }]}
-                >
-                  <Text style={[styles.nutritionValue, { color: "#1e40af" }]}>
-                    {recipe.nutrition.calories}
-                  </Text>
-                  <Text style={[styles.nutritionLabel, { color: "#1e40af" }]}>
-                    칼로리 (kcal)
-                  </Text>
-                  {dailyNeeds && (
-                    <Text style={styles.percentageText}>
-                      {getPercentage(
-                        recipe.nutrition.calories,
-                        dailyNeeds.dailyCalories
-                      )}
-                      %
-                    </Text>
-                  )}
-                </View>
-                <View
-                  style={[styles.nutritionCard, { backgroundColor: "#dcfce7" }]}
-                >
-                  <Text style={[styles.nutritionValue, { color: "#15803d" }]}>
-                    {recipe.nutrition.protein}g
-                  </Text>
-                  <Text style={[styles.nutritionLabel, { color: "#15803d" }]}>
-                    단백질
-                  </Text>
-                </View>
-                <View
-                  style={[styles.nutritionCard, { backgroundColor: "#fef9c3" }]}
-                >
-                  <Text style={[styles.nutritionValue, { color: "#854d0e" }]}>
-                    {recipe.nutrition.fat}g
-                  </Text>
-                  <Text style={[styles.nutritionLabel, { color: "#854d0e" }]}>
-                    지방
-                  </Text>
-                </View>
-                <View
-                  style={[styles.nutritionCard, { backgroundColor: "#fee2e2" }]}
-                >
-                  <Text style={[styles.nutritionValue, { color: "#991b1b" }]}>
-                    {recipe.nutrition.carbs}g
-                  </Text>
-                  <Text style={[styles.nutritionLabel, { color: "#991b1b" }]}>
-                    탄수화물
-                  </Text>
-                </View>
-              </View>
-            ) : (
-              <View style={styles.emptyNutrition}>
-                <Text style={styles.emptyNutritionText}>
-                  영양 정보가 아직 분석되지 않았습니다.
-                </Text>
-              </View>
-            )
+            <View>
+              <NutritionInfo
+                calories={recipe.calories}
+                protein={recipe.protein}
+                fat={recipe.fat}
+                carbs={recipe.carbs}
+                fiber={recipe.fiber}
+                servings={recipe.servings}
+              />
+            </View>
           ) : (
-            <ReviewSystem
-              reviews={recipe.review_list || []}
-              onAddReview={(review) => addReview(Number(recipe.id), review)}
-              userPets={pets}
-              recipeId={Number(recipe.id)}
-            />
+            <View>
+              <TouchableOpacity
+                style={styles.addReviewButton}
+                onPress={() => {
+                  if (!user) {
+                    requireAuth(navigation, "리뷰를 작성하려면 로그인이 필요합니다.");
+                    return;
+                  }
+                  setReviewFormVisible(true);
+                }}
+              >
+                <Ionicons name="create-outline" size={20} color="#fff" />
+                <Text style={styles.addReviewButtonText}>리뷰 작성</Text>
+              </TouchableOpacity>
+
+              <ReviewList recipeId={Number(recipe.id)} />
+
+              <ReviewForm
+                recipeId={Number(recipe.id)}
+                visible={reviewFormVisible}
+                onClose={() => setReviewFormVisible(false)}
+              />
+            </View>
           )}
         </View>
         <View style={{ height: 40 }} />
@@ -411,9 +398,31 @@ const styles = StyleSheet.create({
     color: Colors.textLight,
     fontSize: 14,
   },
-  author: {
+  statsRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  likesCount: {
     fontSize: 14,
+    fontWeight: "600",
     color: Colors.text,
+  },
+  addReviewButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: Colors.primary,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 12,
+    marginBottom: 20,
+    gap: 8,
+  },
+  addReviewButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "600",
   },
   sectionTitle: {
     fontSize: 18,

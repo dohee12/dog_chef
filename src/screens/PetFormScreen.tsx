@@ -1,11 +1,13 @@
 import IngredientSelector from "@/components/IngredientSelector";
 import Colors from "@/constants/Colors";
+import { useAuth } from "@/context/AuthContext";
 import { usePet } from "@/context/PetContext";
 import { Pet } from "@/types/Pet";
 import { Ionicons } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
 import { Image } from "expo-image";
 import * as ImagePicker from "expo-image-picker";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   Alert,
   KeyboardAvoidingView,
@@ -53,7 +55,34 @@ const breedList = [
 
 export default function PetFormScreen({ navigation, route }: any) {
   const initialData = route.params?.pet as Pet;
+  const { user } = useAuth();
   const { addPet, updatePet } = usePet();
+
+  // 화면에 포커스될 때마다 로그인 체크
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) {
+        Alert.alert(
+          "로그인 필요",
+          "반려견 정보를 등록하려면 로그인이 필요합니다.",
+          [
+            {
+              text: "로그인",
+              onPress: () => {
+                navigation.goBack(); // 현재 화면 닫기
+                navigation.navigate("Login");
+              },
+            },
+            {
+              text: "취소",
+              style: "cancel",
+              onPress: () => navigation.goBack(),
+            },
+          ]
+        );
+      }
+    }, [user, navigation])
+  );
 
   // [수정] user_id 속성 추가 (Type Error 해결)
   const [formData, setFormData] = useState<Omit<Pet, "id">>({

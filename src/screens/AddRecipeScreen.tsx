@@ -120,18 +120,6 @@ export default function RecipeFormScreen({ navigation }: any) {
       image:
         formData.image ||
         "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80", // Default food image
-      reviews: 0,
-      rating: 0,
-      review_list: [],
-      nutrition: {
-        calories: 0,
-        protein: 0,
-        fat: 0,
-        carbs: 0,
-        fiber: 0,
-        calcium: 0,
-        phosphorus: 0,
-      },
     } as any);
 
     navigation.goBack();
