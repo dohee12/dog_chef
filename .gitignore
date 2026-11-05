@@ -42,3 +42,6 @@ app-example
 # generated native folders
 /ios
 /android
+
+# 로컬 테스트 임시 파일
+server/.ids
