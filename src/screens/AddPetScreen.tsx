@@ -1,7 +1,7 @@
 import IngredientSelector from "@/components/IngredientSelector";
 import Colors from "@/constants/Colors";
 import { usePet } from "@/context/PetContext";
-import { supabase } from "@/lib/supabase";
+import { getCurrentUser } from "@/lib/api";
 import { Pet } from "@/types/Pet";
 import { Ionicons } from "@expo/vector-icons";
 import { Image } from "expo-image";
@@ -78,25 +78,10 @@ export default function PetFormScreen({ navigation, route }: any) {
   const [healthInput, setHealthInput] = useState("");
   const [showAllergySheet, setShowAllergySheet] = useState(false);
 
-  // 현재 사용자 ID 가져오기
+  // 화면 표시용. 저장할 때는 서버가 로그인 정보로 user_id 를 정한다.
   useEffect(() => {
-    const getCurrentUserId = async () => {
-      try {
-        const {
-          data: { user },
-        } = await supabase.auth.getUser();
-        if (user) {
-          setFormData((prev) => ({ ...prev, user_id: user.id }));
-        } else {
-          // 사용자가 로그인하지 않은 경우 기본값 사용
-          setFormData((prev) => ({ ...prev, user_id: "anonymous" }));
-        }
-      } catch (error) {
-        console.error("사용자 ID 가져오기 실패:", error);
-        setFormData((prev) => ({ ...prev, user_id: "anonymous" }));
-      }
-    };
-    getCurrentUserId();
+    const user = getCurrentUser();
+    setFormData((prev) => ({ ...prev, user_id: user?.id ?? "anonymous" }));
   }, []);
 
   useEffect(() => {
@@ -250,7 +235,7 @@ export default function PetFormScreen({ navigation, route }: any) {
               >
                 {formData.breed || "견종 선택"}
               </Text>
-              <Ionicons name="chevron-down" size={20} color="#9ca3af" />
+              <Ionicons name="chevron-down" size={20} color="#52616D" />
             </TouchableOpacity>
           </View>
 
@@ -265,7 +250,7 @@ export default function PetFormScreen({ navigation, route }: any) {
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>견종 선택</Text>
                   <TouchableOpacity onPress={() => setShowBreedList(false)}>
-                    <Ionicons name="close" size={24} color="#111827" />
+                    <Ionicons name="close" size={24} color="#14212B" />
                   </TouchableOpacity>
                 </View>
                 <TextInput
@@ -306,7 +291,7 @@ export default function PetFormScreen({ navigation, route }: any) {
               >
                 {formData.birth_date || "날짜 선택"}
               </Text>
-              <Ionicons name="calendar-outline" size={20} color="#9ca3af" />
+              <Ionicons name="calendar-outline" size={20} color="#52616D" />
             </TouchableOpacity>
           </View>
 
@@ -321,7 +306,7 @@ export default function PetFormScreen({ navigation, route }: any) {
                 <View style={styles.modalHeader}>
                   <Text style={styles.modalTitle}>생년월일 선택</Text>
                   <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                    <Ionicons name="close" size={24} color="#111827" />
+                    <Ionicons name="close" size={24} color="#14212B" />
                   </TouchableOpacity>
                 </View>
                 <Calendar
@@ -402,8 +387,8 @@ export default function PetFormScreen({ navigation, route }: any) {
                 onValueChange={(value) =>
                   setFormData({ ...formData, is_neutered: value })
                 }
-                trackColor={{ false: "#d1d5db", true: Colors.primaryLight }}
-                thumbColor={formData.is_neutered ? Colors.primary : "#f3f4f6"}
+                trackColor={{ false: "#B8C6CF", true: Colors.primaryLight }}
+                thumbColor={formData.is_neutered ? Colors.primary : "#EEF3F6"}
               />
             </View>
           </View>
@@ -458,7 +443,7 @@ export default function PetFormScreen({ navigation, route }: any) {
                 <View key={index} style={[styles.tagChip, styles.healthChip]}>
                   <Text style={styles.healthChipText}>{health}</Text>
                   <TouchableOpacity onPress={() => handleRemoveHealth(index)}>
-                    <Ionicons name="close-circle" size={16} color="#eab308" />
+                    <Ionicons name="close-circle" size={16} color="#F5B400" />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -568,7 +553,7 @@ const styles = StyleSheet.create({
   },
   placeholder: {
     fontSize: 16,
-    color: "#9ca3af",
+    color: "#52616D",
   },
   searchInput: {
     backgroundColor: Colors.lightBackground,
@@ -660,7 +645,7 @@ const styles = StyleSheet.create({
   submitButtonContainer: {
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
+    borderTopColor: "#DDE5EA",
     backgroundColor: "white",
   },
   submitButton: {
@@ -684,7 +669,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#DDE5EA",
   },
   selectButtonText: {
     fontSize: 14,

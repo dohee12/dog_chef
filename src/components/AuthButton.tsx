@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: Colors.error || "#FF6B6B",
+    backgroundColor: Colors.error || "#B42318",
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 8,

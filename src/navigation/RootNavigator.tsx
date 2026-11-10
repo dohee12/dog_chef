@@ -12,10 +12,11 @@ import TabNavigator from "./TabNavigator";
 const stack = createNativeStackNavigator();
 
 export default function RootNavigator() {
-  const { loading } = useAuth();
+  const { initializing } = useAuth();
 
-  // 로딩 중일 때 표시
-  if (loading) {
+  // 저장된 로그인 확인 중일 때만 표시. 로그인 버튼을 누를 때마다 화면 전체가
+  // 다시 만들어지지 않도록 loading 이 아니라 initializing 을 본다.
+  if (initializing) {
     return (
       <View
         style={{

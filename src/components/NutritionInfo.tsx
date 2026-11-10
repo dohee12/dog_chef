@@ -64,10 +64,10 @@ export function NutritionInfo({
 
       {/* 영양소 */}
       <View style={styles.nutrientsContainer}>
-        {renderNutrientBar("단백질", protein, "barbell-outline", "#FF6B6B")}
-        {renderNutrientBar("지방", fat, "water-outline", "#4ECDC4")}
-        {renderNutrientBar("탄수화물", carbs, "leaf-outline", "#95E1D3")}
-        {renderNutrientBar("식이섬유", fiber, "flower-outline", "#F38181")}
+        {renderNutrientBar("단백질", protein, "barbell-outline", "#1D5C7A")}
+        {renderNutrientBar("지방", fat, "water-outline", "#3E8FB0")}
+        {renderNutrientBar("탄수화물", carbs, "leaf-outline", "#7CC0A0")}
+        {renderNutrientBar("식이섬유", fiber, "flower-outline", "#B5C9D4")}
       </View>
 
       {/* 영양소 비율 (시각화) */}
@@ -88,20 +88,20 @@ export function NutritionInfo({
                       styles.macroSegment,
                       {
                         width: `${proteinPercent}%`,
-                        backgroundColor: "#FF6B6B",
+                        backgroundColor: "#1D5C7A",
                       },
                     ]}
                   />
                   <View
                     style={[
                       styles.macroSegment,
-                      { width: `${fatPercent}%`, backgroundColor: "#4ECDC4" },
+                      { width: `${fatPercent}%`, backgroundColor: "#3E8FB0" },
                     ]}
                   />
                   <View
                     style={[
                       styles.macroSegment,
-                      { width: `${carbsPercent}%`, backgroundColor: "#95E1D3" },
+                      { width: `${carbsPercent}%`, backgroundColor: "#7CC0A0" },
                     ]}
                   />
                 </>
@@ -110,15 +110,15 @@ export function NutritionInfo({
           </View>
           <View style={styles.macroLegend}>
             <View style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: "#FF6B6B" }]} />
+              <View style={[styles.legendColor, { backgroundColor: "#1D5C7A" }]} />
               <Text style={styles.legendText}>단백질</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: "#4ECDC4" }]} />
+              <View style={[styles.legendColor, { backgroundColor: "#3E8FB0" }]} />
               <Text style={styles.legendText}>지방</Text>
             </View>
             <View style={styles.legendItem}>
-              <View style={[styles.legendColor, { backgroundColor: "#95E1D3" }]} />
+              <View style={[styles.legendColor, { backgroundColor: "#7CC0A0" }]} />
               <Text style={styles.legendText}>탄수화물</Text>
             </View>
           </View>

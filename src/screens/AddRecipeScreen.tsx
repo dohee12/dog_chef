@@ -510,7 +510,7 @@ const styles = StyleSheet.create({
   tagChip: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#EEF3F6",
     paddingLeft: 12,
     paddingRight: 8,
     paddingVertical: 6,
@@ -523,7 +523,7 @@ const styles = StyleSheet.create({
   listItem: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#F5F8FA",
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
@@ -543,7 +543,7 @@ const styles = StyleSheet.create({
   instructionItem: {
     flexDirection: "row",
     alignItems: "flex-start",
-    backgroundColor: "#f9fafb",
+    backgroundColor: "#F5F8FA",
     padding: 12,
     borderRadius: 8,
     marginBottom: 8,
@@ -576,7 +576,7 @@ const styles = StyleSheet.create({
   submitButtonContainer: {
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
+    borderTopColor: "#DDE5EA",
     backgroundColor: "white",
   },
   submitButton: {
@@ -600,7 +600,7 @@ const styles = StyleSheet.create({
     width: "100%",
     height: 200,
     borderRadius: 8,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#EEF3F6",
   },
   changeImageButton: {
     position: "absolute",
@@ -619,13 +619,13 @@ const styles = StyleSheet.create({
   imageSelectButton: {
     width: "100%",
     height: 120,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#EEF3F6",
     borderRadius: 8,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#DDE5EA",
     borderStyle: "dashed",
   },
   imageSelectText: {

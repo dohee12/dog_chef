@@ -73,7 +73,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
             <Ionicons
               name={recipe.isLiked ? "heart" : "heart-outline"}
               size={24}
-              color={recipe.isLiked ? "white" : "#6b7280"}
+              color={recipe.isLiked ? "white" : "#52616D"}
             />
           </TouchableOpacity>
         </View>
@@ -123,7 +123,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
           {/* Rating */}
           <View style={styles.ratingCard}>
             <View style={styles.ratingLeft}>
-              <Ionicons name="star" size={20} color="#eab308" />
+              <Ionicons name="star" size={20} color="#F5B400" />
               <Text style={styles.ratingValue}>{recipe.rating.toFixed(1)}</Text>
               <Text style={styles.reviewCount}>({recipe.reviews}개 리뷰)</Text>
             </View>
@@ -169,7 +169,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
           {/* Warning */}
           <View style={styles.warningCard}>
             <View style={styles.warningHeader}>
-              <Ionicons name="warning-outline" size={20} color="#d97706" />
+              <Ionicons name="warning-outline" size={20} color="#B42318" />
               <Text style={styles.warningTitle}>주의사항</Text>
             </View>
             <Text style={styles.warningText}>
@@ -406,7 +406,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tag: {
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#EEF3F6",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -457,12 +457,12 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   warningCard: {
-    backgroundColor: "#fff7ed",
+    backgroundColor: "#FDECEC",
     padding: 16,
     borderRadius: 12,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "#fed7aa",
+    borderColor: "#F3B8B8",
   },
   warningHeader: {
     flexDirection: "row",
@@ -470,12 +470,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   warningTitle: {
-    color: "#d97706",
+    color: "#B42318",
     fontWeight: "bold",
     marginLeft: 8,
   },
   warningText: {
-    color: "#92400e",
+    color: "#7A1A12",
     fontSize: 14,
     lineHeight: 20,
   },
@@ -483,7 +483,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: "#DDE5EA",
   },
   tab: {
     flex: 1,

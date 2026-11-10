@@ -1,9 +1,9 @@
-import { supabase } from "@/lib/supabase";
+import { ApiError, api, getCurrentUser, onAuthChange, toRemoteImage } from "@/lib/api";
+import { confirmAsync, notify } from "@/lib/dialog";
 import { Recipe, Review } from "@/types/Recipe";
-import { mockRecipes } from "@/utils/mockData";
 import { calculateTotalNutrition } from "@/utils/calculateNutritionFromIngredients";
+import { mockRecipes } from "@/utils/mockData";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { Alert } from "react-native";
 
 interface RecipeContextType {
   recipes: Recipe[];
@@ -22,348 +22,172 @@ interface RecipeContextType {
 }
 
 const DEFAULT_INGREDIENTS = ["닭가슴살", "고구마", "연어", "당근", "브로콜리"];
-const RECIPE_TTL = 24 * 60 * 60 * 1000;
 
 const RecipeContext = createContext<RecipeContextType | undefined>(undefined);
+
+const round2 = (n: number) => Math.round(n * 100) / 100;
+
+/** 재료 목록으로 영양 정보를 계산한다. 모르는 재료는 경고만 남긴다. */
+const nutritionFrom = (ingredients: string[]) => {
+  const n = calculateTotalNutrition(ingredients);
+  if (n.missingIngredients.length > 0) {
+    console.warn("영양 정보를 찾을 수 없는 재료:", n.missingIngredients);
+  }
+  return {
+    calories: round2(n.calories),
+    protein: round2(n.protein),
+    fat: round2(n.fat),
+    carbs: round2(n.carbs),
+    fiber: round2(n.fiber),
+  };
+};
 
 const withComputedNutrition = (item: any) => {
   const hasNutrition = [item.calories, item.protein, item.fat, item.carbs, item.fiber].some(
     (value) => value !== undefined && value !== null
   );
-
   if (hasNutrition || !item.ingredients || item.ingredients.length === 0) {
     return item;
   }
+  return { ...item, ...nutritionFrom(item.ingredients) };
+};
 
-  const nutrition = calculateTotalNutrition(item.ingredients);
-
+/**
+ * 서버 응답을 화면들이 쓰는 Recipe 모양으로 맞춘다.
+ * 카드/상세 화면은 rating, reviews, nutrition 을 읽는데 서버는
+ * average_rating, reviews_count, 낱개 영양 필드로 준다. 없으면 화면이 통째로 죽는다.
+ */
+const toRecipe = (item: any): Recipe => {
+  const r = withComputedNutrition(item);
   return {
-    ...item,
-    calories: Math.round(nutrition.calories * 100) / 100,
-    protein: Math.round(nutrition.protein * 100) / 100,
-    fat: Math.round(nutrition.fat * 100) / 100,
-    carbs: Math.round(nutrition.carbs * 100) / 100,
-    fiber: Math.round(nutrition.fiber * 100) / 100,
+    ...r,
+    rating: Number(r.average_rating ?? r.rating ?? 0),
+    reviews: Number(r.reviews_count ?? r.reviews ?? 0),
+    review_list: r.review_list ?? [],
+    ingredients: r.ingredients ?? [],
+    instructions: r.instructions ?? [],
+    tags: r.tags ?? [],
+    nutrition: r.nutrition ?? {
+      calories: r.calories ?? 0,
+      protein: r.protein ?? 0,
+      fat: r.fat ?? 0,
+      carbs: r.carbs ?? 0,
+      fiber: r.fiber ?? 0,
+      calcium: 0,
+      phosphorus: 0,
+    },
   };
 };
+
+const errorMessage = (error: unknown) =>
+  error instanceof ApiError ? error.message : String(error);
+
 
 export const RecipeProvider = ({ children }: { children: React.ReactNode }) => {
   const [recipes, setRecipes] = useState<Recipe[]>([]);
   const [ingredients, setIngredients] = useState<string[]>(DEFAULT_INGREDIENTS);
 
+  // 로그인/로그아웃 하면 찜 표시(isLiked)가 바뀌므로 다시 불러온다
   useEffect(() => {
     loadRecipes();
+    return onAuthChange(() => {
+      loadRecipes();
+    });
   }, []);
 
-  const loadRecipes = async () => {
+  const fetchRecipes = async (query: string) => {
     try {
-      const cutoffTime = new Date(Date.now() - RECIPE_TTL).toISOString();
-      const { data: recipesData, error } = await supabase
-        .from("recipes")
-        .select("*")
-        .gt("created_at", cutoffTime)
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      // [좋아요 상태 연동]
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      let likedIds: number[] = [];
-      if (user) {
-        const { data: likes } = await supabase
-          .from("likes")
-          .select("recipe_id")
-          .eq("user_id", user.id);
-        likedIds = likes?.map((l) => Number(l.recipe_id)) || [];
-      }
-
-      if (recipesData) {
-        setRecipes(
-          recipesData.map((item) => {
-            const enriched = withComputedNutrition(item);
-            return {
-              ...enriched,
-              id: Number(enriched.id),
-              isLiked: likedIds.includes(Number(enriched.id)),
-            };
-          }) as Recipe[]
-        );
-      }
+      const data = await api.get<any[]>(`/recipes?${query}`);
+      setRecipes(data.map(toRecipe));
     } catch (error) {
-      console.error("로드 실패:", error);
+      console.error("레시피 로드 실패:", error);
       setRecipes(mockRecipes);
     }
   };
 
-  const loadPopularRecipes = async () => {
-    try {
-      const cutoffTime = new Date(Date.now() - RECIPE_TTL).toISOString();
-      
-      // 인기 점수 = (찜 수 × 2) + (리뷰 수 × 3) + (평균 평점 × 10)
-      const { data: recipesData, error } = await supabase
-        .from("recipes")
-        .select("*")
-        .gt("created_at", cutoffTime)
-        .order("likes_count", { ascending: false })
-        .order("reviews_count", { ascending: false })
-        .order("average_rating", { ascending: false })
-        .limit(20);
+  // 예전 코드는 최근 24시간 레시피만 보여 줘서 하루가 지나면 목록이 비었다. 이제 전부 보여 준다.
+  const loadRecipes = () => fetchRecipes("sort=latest");
 
-      if (error) throw error;
-
-      // [좋아요 상태 연동]
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      let likedIds: number[] = [];
-      if (user) {
-        const { data: likes } = await supabase
-          .from("likes")
-          .select("recipe_id")
-          .eq("user_id", user.id);
-        likedIds = likes?.map((l) => Number(l.recipe_id)) || [];
-      }
-
-      if (recipesData) {
-        // 인기 점수 계산하여 정렬
-        const recipesWithScore = recipesData.map((item) => {
-          const enriched = withComputedNutrition(item);
-          const popularityScore =
-            (enriched.likes_count || 0) * 2 +
-            (enriched.reviews_count || 0) * 3 +
-            (enriched.average_rating || 0) * 10;
-
-          return {
-            ...enriched,
-            id: Number(enriched.id),
-            isLiked: likedIds.includes(Number(enriched.id)),
-            popularityScore,
-          };
-        });
-
-        // 인기 점수로 재정렬
-        recipesWithScore.sort((a, b) => b.popularityScore - a.popularityScore);
-
-        setRecipes(recipesWithScore as Recipe[]);
-      }
-    } catch (error) {
-      console.error("인기 레시피 로드 실패:", error);
-      setRecipes(mockRecipes);
-    }
-  };
+  // 인기 점수 = (찜 수 × 2) + (리뷰 수 × 3) + (평균 평점 × 10), 서버에서 정렬
+  const loadPopularRecipes = () => fetchRecipes("sort=popular&limit=20");
 
   const addRecipe = async (recipeData: Omit<Recipe, "id">) => {
+    if (!getCurrentUser()) {
+      notify("로그인 필요", "레시피를 작성하려면 로그인이 필요합니다.");
+      return;
+    }
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        Alert.alert("로그인 필요", "레시피를 작성하려면 로그인이 필요합니다.");
-        return;
-      }
-
-      // 재료 배열에서 영양 정보 계산
-      let nutritionData = {
-        calories: 0,
-        protein: 0,
-        fat: 0,
-        carbs: 0,
-        fiber: 0,
-      };
-
-      if (recipeData.ingredients && recipeData.ingredients.length > 0) {
-        const nutrition = calculateTotalNutrition(recipeData.ingredients);
-        
-        if (nutrition.missingIngredients.length > 0) {
-          console.warn("영양 정보를 찾을 수 없는 재료:", nutrition.missingIngredients);
-        }
-
-        nutritionData = {
-          calories: Math.round(nutrition.calories * 100) / 100,
-          protein: Math.round(nutrition.protein * 100) / 100,
-          fat: Math.round(nutrition.fat * 100) / 100,
-          carbs: Math.round(nutrition.carbs * 100) / 100,
-          fiber: Math.round(nutrition.fiber * 100) / 100,
-        };
-      }
-
-      const { data, error } = await supabase
-        .from("recipes")
-        .insert([
-          {
-            ...recipeData,
-            ...nutritionData,
-            user_id: user.id,
-            is_user_created: true,
-            likes_count: 0,
-            reviews_count: 0,
-            average_rating: 0,
-          },
-        ])
-        .select();
-
-      if (error) {
-        console.error("레시피 등록 실패:", error);
-        if (error.code === "42501") {
-          Alert.alert(
-            "권한 오류",
-            "Supabase RLS 정책이 설정되지 않았습니다.\n\n'Supabase_RLS_설정.sql' 파일을 실행하세요."
-          );
-        } else {
-          Alert.alert("실패", `레시피 등록에 실패했습니다: ${error.message}`);
-        }
-        return;
-      }
-
-      Alert.alert("성공", "레시피가 등록되었습니다.");
+      await api.post("/recipes", {
+        ...recipeData,
+        image: await toRemoteImage(recipeData.image),
+        ...(recipeData.ingredients?.length ? nutritionFrom(recipeData.ingredients) : {}),
+      });
+      notify("성공", "레시피가 등록되었습니다.");
       await loadRecipes();
-    } catch (error: any) {
+    } catch (error) {
       console.error("레시피 등록 실패:", error);
-      Alert.alert("실패", `레시피 등록 중 오류가 발생했습니다: ${error.message}`);
+      notify("실패", `레시피 등록에 실패했습니다: ${errorMessage(error)}`);
     }
   };
 
   const updateRecipe = async (id: number, recipeData: Partial<Recipe>) => {
+    if (!getCurrentUser()) {
+      notify("로그인 필요", "레시피를 수정하려면 로그인이 필요합니다.");
+      return;
+    }
+    // 재료가 바뀌었을 수 있으니 영양 정보를 다시 계산한다
+    const existing = recipes.find((r) => r.id === id);
+    const ingredientsToUse = recipeData.ingredients || existing?.ingredients || [];
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        Alert.alert("로그인 필요", "레시피를 수정하려면 로그인이 필요합니다.");
-        return;
-      }
-
-      // 재료가 변경되었다면 영양 정보 재계산
-      let nutritionData: Partial<Recipe> = {};
-      
-      // 기존 레시피 정보 가져오기
-      const existingRecipe = recipes.find((r) => r.id === id);
-      const ingredientsToUse = recipeData.ingredients || existingRecipe?.ingredients || [];
-
-      if (ingredientsToUse.length > 0) {
-        const nutrition = calculateTotalNutrition(ingredientsToUse);
-        
-        if (nutrition.missingIngredients.length > 0) {
-          console.warn("영양 정보를 찾을 수 없는 재료:", nutrition.missingIngredients);
-        }
-
-        nutritionData = {
-          calories: Math.round(nutrition.calories * 100) / 100,
-          protein: Math.round(nutrition.protein * 100) / 100,
-          fat: Math.round(nutrition.fat * 100) / 100,
-          carbs: Math.round(nutrition.carbs * 100) / 100,
-          fiber: Math.round(nutrition.fiber * 100) / 100,
-        };
-      }
-
-      const { error } = await supabase
-        .from("recipes")
-        .update({
-          ...recipeData,
-          ...nutritionData,
-        })
-        .eq("id", id)
-        .eq("user_id", user.id); // 자신의 레시피만 수정 가능
-
-      if (error) {
-        console.error("레시피 수정 실패:", error);
-        if (error.code === "42501") {
-          Alert.alert(
-            "권한 오류",
-            "이 레시피를 수정할 권한이 없습니다."
-          );
-        } else {
-          Alert.alert("실패", `레시피 수정에 실패했습니다: ${error.message}`);
-        }
-        return;
-      }
-
+      await api.patch(`/recipes/${id}`, {
+        ...recipeData,
+        ...(recipeData.image !== undefined ? { image: await toRemoteImage(recipeData.image) } : {}),
+        ...(ingredientsToUse.length ? nutritionFrom(ingredientsToUse) : {}),
+      });
       await loadRecipes();
-      Alert.alert("성공", "레시피가 수정되었습니다.");
-    } catch (error: any) {
-      console.error("레시피 수정 실패:", error.message);
-      Alert.alert("실패", "레시피 수정에 실패했습니다");
+      notify("성공", "레시피가 수정되었습니다.");
+    } catch (error) {
+      console.error("레시피 수정 실패:", error);
+      notify("실패", `레시피 수정에 실패했습니다: ${errorMessage(error)}`);
     }
   };
 
   const deleteRecipe = async (id: number) => {
+    if (!getCurrentUser()) {
+      notify("로그인 필요", "레시피를 삭제하려면 로그인이 필요합니다.");
+      return;
+    }
+    const ok = await confirmAsync(
+      "레시피 삭제",
+      "정말로 이 레시피를 삭제하시겠습니까?",
+      "삭제",
+      true
+    );
+    if (!ok) return;
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-
-      if (!user) {
-        Alert.alert("로그인 필요", "레시피를 삭제하려면 로그인이 필요합니다.");
-        return;
-      }
-
-      Alert.alert(
-        "레시피 삭제",
-        "정말로 이 레시피를 삭제하시겠습니까?",
-        [
-          { text: "취소", style: "cancel" },
-          {
-            text: "삭제",
-            style: "destructive",
-            onPress: async () => {
-      const { error } = await supabase
-        .from("recipes")
-        .delete()
-        .eq("id", id)
-        .eq("user_id", user.id); // 자신의 레시피만 삭제 가능
-
-      if (error) {
-        console.error("레시피 삭제 실패:", error);
-        if (error.code === "42501") {
-          Alert.alert(
-            "권한 오류",
-            "이 레시피를 삭제할 권한이 없습니다."
-          );
-        } else {
-          Alert.alert("실패", `레시피 삭제에 실패했습니다: ${error.message}`);
-        }
-        return;
-      }
-
+      await api.delete(`/recipes/${id}`);
       await loadRecipes();
-      Alert.alert("성공", "레시피가 삭제되었습니다.");
-            },
-          },
-        ]
-      );
-    } catch (error: any) {
-      console.error("레시피 삭제 실패:", error.message);
-      Alert.alert("실패", "레시피 삭제에 실패했습니다");
+      notify("성공", "레시피가 삭제되었습니다.");
+    } catch (error) {
+      console.error("레시피 삭제 실패:", error);
+      notify("실패", `레시피 삭제에 실패했습니다: ${errorMessage(error)}`);
     }
   };
 
   const toggleLike = async (id: number | string) => {
+    if (!getCurrentUser()) {
+      notify("로그인이 필요합니다.");
+      return;
+    }
+    const isLiked = recipes.find((r) => r.id === id)?.isLiked;
     try {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) return alert("로그인이 필요합니다.");
-
-      const isLiked = recipes.find((r) => r.id === id)?.isLiked;
-
-      if (isLiked) {
-        await supabase
-          .from("likes")
-          .delete()
-          .eq("user_id", user.id)
-          .eq("recipe_id", id);
-      } else {
-        await supabase
-          .from("likes")
-          .insert([{ user_id: user.id, recipe_id: id, device_id: "mobile" }]);
-      }
-
+      const res = isLiked
+        ? await api.delete<{ isLiked: boolean; likes_count: number }>(`/recipes/${id}/like`)
+        : await api.post<{ isLiked: boolean; likes_count: number }>(`/recipes/${id}/like`);
       setRecipes((prev) =>
-        prev.map((r) => (r.id === id ? { ...r, isLiked: !isLiked } : r))
+        prev.map((r) =>
+          r.id === id ? { ...r, isLiked: res.isLiked, likes_count: res.likes_count } : r
+        )
       );
     } catch (error) {
       console.error("좋아요 토글 실패:", error);
@@ -374,12 +198,8 @@ export const RecipeProvider = ({ children }: { children: React.ReactNode }) => {
     if (!ingredients.includes(ing)) setIngredients([...ingredients, ing]);
   };
 
-  const addReview = async (
-    recipeId: number | string,
-    review: Omit<Review, "id">
-  ) => {
-    // 이 함수는 더 이상 사용하지 않습니다.
-    // ReviewContext의 addReview를 사용하세요.
+  const addReview = async () => {
+    // 더 이상 쓰지 않는다. ReviewContext 의 addReview 를 쓴다.
     console.warn("RecipeContext.addReview는 더 이상 사용되지 않습니다. ReviewContext.addReview를 사용하세요.");
   };
 

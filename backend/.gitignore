@@ -1,0 +1,8 @@
+node_modules
+dist
+
+# 로컬 DB 와 비밀값
+/data
+.env
+/uploads
+*.log

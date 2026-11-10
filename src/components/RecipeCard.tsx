@@ -1,7 +1,8 @@
+import RecipeImage from "@/components/RecipeImage";
+import { SafetyBadge } from "@/components/SafetyBadge";
 import Colors from "@/constants/Colors";
 import { Recipe } from "@/types/Recipe";
 import { Ionicons } from "@expo/vector-icons";
-import { Image } from "expo-image";
 import React from "react";
 import {
   StyleSheet,
@@ -130,8 +131,6 @@ export default function RecipeCard({
   hasAllergy,
   style,
 }: Props) {
-  const [hasError, setHasError] = React.useState(false);
-
   return (
     <TouchableOpacity
       style={[styles.card, style]}
@@ -139,36 +138,7 @@ export default function RecipeCard({
       activeOpacity={0.9}
     >
       <View style={styles.imageContainer}>
-        <Image
-          source={{
-            uri:
-              !hasError && recipe.image
-                ? recipe.image
-                : "https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=800&q=80",
-          }}
-          style={styles.image}
-          contentFit="cover"
-          transition={200}
-          onError={() => setHasError(true)}
-        />
-
-        {hasError && (
-          <View
-            style={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: "#f3f4f6",
-              alignItems: "center",
-              justifyContent: "center",
-              zIndex: -1,
-            }}
-          >
-            <Ionicons name="image-outline" size={48} color="#d1d5db" />
-          </View>
-        )}
+        <RecipeImage uri={recipe.image} />
 
         {hasAllergy && (
           <View style={styles.allergyBadge}>
@@ -190,6 +160,7 @@ export default function RecipeCard({
       </View>
 
       <View style={styles.content}>
+        <SafetyBadge ingredients={recipe.ingredients} style={{ marginBottom: 8 }} />
         <Text style={styles.title} numberOfLines={1}>
           {recipe.title}
         </Text>
@@ -214,7 +185,7 @@ export default function RecipeCard({
 
         <View style={styles.footer}>
           <View style={styles.rating}>
-            <Ionicons name="star" size={14} color="#eab308" />
+            <Ionicons name="star" size={14} color="#F5B400" />
             <Text style={styles.ratingText}>{recipe.rating.toFixed(1)}</Text>
           </View>
           <View style={styles.categoryBadge}>

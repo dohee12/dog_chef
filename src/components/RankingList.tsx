@@ -110,7 +110,7 @@ const RankingItem = ({
         </Text>
         <View style={styles.stats}>
           <View style={styles.statItem}>
-            <Ionicons name="star" size={12} color="#eab308" />
+            <Ionicons name="star" size={12} color="#F5B400" />
             <Text style={styles.statText}>{recipe.rating.toFixed(1)}</Text>
           </View>
           <View style={styles.statItem}>

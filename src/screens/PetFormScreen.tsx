@@ -272,7 +272,7 @@ export default function PetFormScreen({ navigation, route }: any) {
               >
                 {formData.breed || "견종 선택"}
               </Text>
-              <Ionicons name="chevron-down" size={20} color="#9ca3af" />
+              <Ionicons name="chevron-down" size={20} color="#52616D" />
             </TouchableOpacity>
           </View>
 
@@ -289,7 +289,7 @@ export default function PetFormScreen({ navigation, route }: any) {
               >
                 {formData.birth_date || "날짜 선택"}
               </Text>
-              <Ionicons name="calendar-outline" size={20} color="#9ca3af" />
+              <Ionicons name="calendar-outline" size={20} color="#52616D" />
             </TouchableOpacity>
           </View>
 
@@ -351,8 +351,8 @@ export default function PetFormScreen({ navigation, route }: any) {
                 onValueChange={(value) =>
                   setFormData({ ...formData, is_neutered: value })
                 }
-                trackColor={{ false: "#d1d5db", true: Colors.primaryLight }}
-                thumbColor={formData.is_neutered ? Colors.primary : "#f3f4f6"}
+                trackColor={{ false: "#B8C6CF", true: Colors.primaryLight }}
+                thumbColor={formData.is_neutered ? Colors.primary : "#EEF3F6"}
               />
             </View>
           </View>
@@ -405,7 +405,7 @@ export default function PetFormScreen({ navigation, route }: any) {
                 <View key={index} style={[styles.tagChip, styles.healthChip]}>
                   <Text style={styles.healthChipText}>{health}</Text>
                   <TouchableOpacity onPress={() => handleRemoveHealth(index)}>
-                    <Ionicons name="close-circle" size={16} color="#eab308" />
+                    <Ionicons name="close-circle" size={16} color="#F5B400" />
                   </TouchableOpacity>
                 </View>
               ))}
@@ -430,7 +430,7 @@ export default function PetFormScreen({ navigation, route }: any) {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>견종 선택</Text>
               <TouchableOpacity onPress={() => setShowBreedList(false)}>
-                <Ionicons name="close" size={24} color="#111827" />
+                <Ionicons name="close" size={24} color="#14212B" />
               </TouchableOpacity>
             </View>
             <TextInput
@@ -463,7 +463,7 @@ export default function PetFormScreen({ navigation, route }: any) {
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>생년월일 선택</Text>
               <TouchableOpacity onPress={() => setShowDatePicker(false)}>
-                <Ionicons name="close" size={24} color="#111827" />
+                <Ionicons name="close" size={24} color="#14212B" />
               </TouchableOpacity>
             </View>
             <Calendar
@@ -549,7 +549,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   inputText: { fontSize: 16, color: Colors.text },
-  placeholder: { fontSize: 16, color: "#9ca3af" },
+  placeholder: { fontSize: 16, color: "#52616D" },
   searchInput: {
     backgroundColor: Colors.lightBackground,
     borderRadius: 8,
@@ -614,7 +614,7 @@ const styles = StyleSheet.create({
   submitButtonContainer: {
     padding: 16,
     borderTopWidth: 1,
-    borderTopColor: "#e5e7eb",
+    borderTopColor: "#DDE5EA",
     backgroundColor: "white",
   },
   submitButton: {
@@ -632,7 +632,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     borderWidth: 1,
-    borderColor: "#e5e7eb",
+    borderColor: "#DDE5EA",
   },
   selectButtonText: { fontSize: 14, color: Colors.text },
   modalOverlay: {

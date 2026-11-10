@@ -1,5 +1,7 @@
 import AllergyWarning from "@/components/AllergyWarning";
 import ReviewSystem from "@/components/ReviewSystem";
+import { SafetyPanel } from "@/components/SafetyBadge";
+import RecipeImage from "@/components/RecipeImage";
 import { NutritionInfo } from "@/components/NutritionInfo";
 import { RecipeActions } from "@/components/RecipeActions";
 import { ReviewList } from "@/components/ReviewList";
@@ -91,11 +93,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
       <ScrollView style={styles.content}>
         {/* Image */}
         <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: recipe.image }}
-            style={styles.recipeImage}
-            resizeMode="cover"
-          />
+          <RecipeImage uri={recipe.image} />
           <TouchableOpacity
             style={[
               styles.likeButton,
@@ -134,6 +132,8 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
             />
           )}
 
+          <SafetyPanel ingredients={recipe.ingredients} />
+
           {/* Info Cards */}
           <View style={styles.infoCards}>
             <View style={styles.infoCard}>
@@ -167,7 +167,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
           {/* Rating & Stats */}
           <View style={styles.ratingCard}>
             <View style={styles.ratingLeft}>
-              <Ionicons name="star" size={20} color="#eab308" />
+              <Ionicons name="star" size={20} color="#F5B400" />
               <Text style={styles.ratingValue}>
                 {averageRating.toFixed(1)}
               </Text>
@@ -220,7 +220,7 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
           {/* Warning */}
           <View style={styles.warningCard}>
             <View style={styles.warningHeader}>
-              <Ionicons name="warning-outline" size={20} color="#d97706" />
+              <Ionicons name="warning-outline" size={20} color="#B42318" />
               <Text style={styles.warningTitle}>주의사항</Text>
             </View>
             <Text style={styles.warningText}>
@@ -277,13 +277,13 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
             <View>
               <TouchableOpacity
                 style={styles.addReviewButton}
-                onPress={() => {
-                  if (!user) {
-                    requireAuth(navigation, "리뷰를 작성하려면 로그인이 필요합니다.");
-                    return;
-                  }
-                  setReviewFormVisible(true);
-                }}
+                onPress={() =>
+                  requireAuth(
+                    navigation,
+                    () => setReviewFormVisible(true),
+                    "리뷰를 작성하려면 로그인이 필요합니다."
+                  )
+                }
               >
                 <Ionicons name="create-outline" size={20} color="#fff" />
                 <Text style={styles.addReviewButtonText}>리뷰 작성</Text>
@@ -436,7 +436,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tag: {
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#EEF3F6",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -487,12 +487,12 @@ const styles = StyleSheet.create({
     lineHeight: 24,
   },
   warningCard: {
-    backgroundColor: "#fff7ed",
+    backgroundColor: "#FDECEC",
     padding: 16,
     borderRadius: 12,
     marginBottom: 24,
     borderWidth: 1,
-    borderColor: "#fed7aa",
+    borderColor: "#F3B8B8",
   },
   warningHeader: {
     flexDirection: "row",
@@ -500,12 +500,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   warningTitle: {
-    color: "#d97706",
+    color: "#B42318",
     fontWeight: "bold",
     marginLeft: 8,
   },
   warningText: {
-    color: "#92400e",
+    color: "#7A1A12",
     fontSize: 14,
     lineHeight: 20,
   },
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     marginBottom: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: "#DDE5EA",
   },
   tab: {
     flex: 1,

@@ -262,7 +262,7 @@ export default function ReviewSystem({
                 i < Math.floor(averageRating + 0.5) ? "star" : "star-outline"
               }
               size={24}
-              color="#eab308"
+              color="#F5B400"
             />
           ))}
         </View>
@@ -294,7 +294,7 @@ export default function ReviewSystem({
                 <Ionicons
                   name={star <= newReview.rating ? "star" : "star-outline"}
                   size={32}
-                  color="#eab308"
+                  color="#F5B400"
                 />
               </TouchableOpacity>
             ))}
@@ -373,7 +373,7 @@ export default function ReviewSystem({
           <View key={review.id} style={styles.reviewCard}>
             <View style={styles.reviewHeader}>
               <View style={styles.avatar}>
-                <Ionicons name="person" size={16} color="#9ca3af" />
+                <Ionicons name="person" size={16} color="#52616D" />
               </View>
               <View style={styles.reviewInfo}>
                 <View style={styles.reviewNameRow}>
@@ -393,7 +393,7 @@ export default function ReviewSystem({
                         key={i}
                         name={i < review.rating ? "star" : "star-outline"}
                         size={12}
-                        color="#eab308"
+                        color="#F5B400"
                       />
                     ))}
                   </View>

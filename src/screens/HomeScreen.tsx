@@ -394,7 +394,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: "#DDE5EA",
   },
   logoContainer: {
     flexDirection: "row",
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: "row",
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#EEF3F6",
     padding: 4,
     borderRadius: 25,
   },
@@ -496,7 +496,7 @@ const styles = StyleSheet.create({
   filterButton: {
     width: 40,
     height: 40,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#EEF3F6",
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",

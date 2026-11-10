@@ -76,7 +76,7 @@ export default function FavoritesScreen({ navigation }: any) {
         {favoriteRecipes.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconContainer}>
-              <Ionicons name="heart-outline" size={48} color="#9ca3af" />
+              <Ionicons name="heart-outline" size={48} color="#52616D" />
             </View>
             <Text style={styles.emptyTitle}>찜한 레시피가 없습니다</Text>
             <Text style={styles.emptyText}>

@@ -117,7 +117,7 @@ export default function ProfileMenu() {
                 signOut();
               }}
             >
-              <Ionicons name="log-out-outline" size={22} color="#FF6B6B" />
+              <Ionicons name="log-out-outline" size={22} color="#B42318" />
               <Text style={[styles.menuItemText, styles.logoutText]}>
                 로그아웃
               </Text>
@@ -240,10 +240,10 @@ const styles = StyleSheet.create({
 
   // 로그아웃
   logoutItem: {
-    backgroundColor: "#FFF5F5",
+    backgroundColor: "#FDECEC",
   },
   logoutText: {
-    color: "#FF6B6B",
+    color: "#B42318",
     fontWeight: "600",
   },
 });

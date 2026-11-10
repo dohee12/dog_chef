@@ -51,9 +51,15 @@ const categories = [
   },
 ];
 
-export default function SearchScreen({ navigation }: any) {
+export default function SearchScreen({ navigation, route }: any) {
   const { recipes, toggleLike } = useRecipe();
   const [searchQuery, setSearchQuery] = useState("");
+
+  // PC 웹 왼쪽 검색창에서 넘어온 검색어
+  const incomingQuery: string | undefined = route?.params?.q;
+  useEffect(() => {
+    if (incomingQuery) setSearchQuery(incomingQuery);
+  }, [incomingQuery]);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedIngredients, setSelectedIngredients] = useState<string[]>([]);
@@ -150,7 +156,7 @@ export default function SearchScreen({ navigation }: any) {
       {/* Search Bar */}
       <View style={styles.searchSection}>
         <View style={styles.searchBar}>
-          <Ionicons name="search" size={20} color="#9ca3af" />
+          <Ionicons name="search" size={20} color="#52616D" />
           <TextInput
             style={styles.searchInput}
             placeholder="반려견 음식명, 재료명으로 검색"
@@ -160,7 +166,7 @@ export default function SearchScreen({ navigation }: any) {
           />
           {searchQuery.length > 0 && (
             <TouchableOpacity onPress={() => setSearchQuery("")}>
-              <Ionicons name="close-circle" size={20} color="#9ca3af" />
+              <Ionicons name="close-circle" size={20} color="#52616D" />
             </TouchableOpacity>
           )}
         </View>
@@ -174,7 +180,7 @@ export default function SearchScreen({ navigation }: any) {
           <Ionicons
             name="filter"
             size={20}
-            color={selectedIngredients.length > 0 ? "white" : "#6b7280"}
+            color={selectedIngredients.length > 0 ? "white" : "#52616D"}
           />
           {selectedIngredients.length > 0 && (
             <View style={styles.filterBadge}>
@@ -196,7 +202,7 @@ export default function SearchScreen({ navigation }: any) {
               <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                   <View style={styles.sectionTitleContainer}>
-                    <Ionicons name="time-outline" size={20} color="#6b7280" />
+                    <Ionicons name="time-outline" size={20} color="#52616D" />
                     <Text style={styles.sectionTitle}>최근 검색어</Text>
                   </View>
                   <TouchableOpacity onPress={clearRecentSearches}>
@@ -344,7 +350,7 @@ export default function SearchScreen({ navigation }: any) {
               </View>
             ) : (
               <View style={styles.emptyState}>
-                <Ionicons name="search-outline" size={64} color="#d1d5db" />
+                <Ionicons name="search-outline" size={64} color="#B8C6CF" />
                 <Text style={styles.emptyStateTitle}>검색 결과가 없습니다</Text>
                 <Text style={styles.emptyStateText}>
                   다른 검색어로 시도해보세요
@@ -376,7 +382,7 @@ const styles = StyleSheet.create({
   header: {
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#e5e7eb",
+    borderBottomColor: "#DDE5EA",
   },
   title: {
     fontSize: 24,
@@ -397,7 +403,7 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#EEF3F6",
     borderRadius: 12,
     paddingHorizontal: 12,
     height: 48,
@@ -410,7 +416,7 @@ const styles = StyleSheet.create({
   filterButton: {
     width: 48,
     height: 48,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#EEF3F6",
     borderRadius: 12,
     justifyContent: "center",
     alignItems: "center",
@@ -442,7 +448,7 @@ const styles = StyleSheet.create({
   section: {
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: "#f3f4f6",
+    borderBottomColor: "#EEF3F6",
   },
   sectionHeader: {
     flexDirection: "row",
@@ -473,7 +479,7 @@ const styles = StyleSheet.create({
   tag: {
     paddingHorizontal: 12,
     paddingVertical: 6,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#EEF3F6",
     borderRadius: 16,
   },
   tagText: {
@@ -481,9 +487,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   popularTag: {
-    backgroundColor: "#fff7ed",
+    backgroundColor: "#E2EEF4",
     borderWidth: 1,
-    borderColor: "#ffedd5",
+    borderColor: "#C5DCE8",
   },
   popularTagText: {
     color: Colors.primary,
@@ -512,7 +518,7 @@ const styles = StyleSheet.create({
   activeFilter: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff7ed",
+    backgroundColor: "#E2EEF4",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,

@@ -10,7 +10,7 @@ import {
   Dimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors } from '../styles/colors';
+import colors from '../constants/Colors';
 import { layout } from '../styles/layout';
 import { useNavigation } from '@react-navigation/native';
 
@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.primaryDark,
+    backgroundColor: colors.primary,
     paddingVertical: 12,
     paddingHorizontal: 20,
     borderRadius: 30,
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
   buttonSub: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: colors.secondary,
+    backgroundColor: colors.primaryDark,
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 24,

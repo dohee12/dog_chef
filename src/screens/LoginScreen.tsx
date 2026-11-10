@@ -1,5 +1,6 @@
 import { useAuth } from "@/context/AuthContext";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -20,6 +21,7 @@ export default function LoginScreen() {
   const [isSignUp, setIsSignUp] = useState(false);
   const { signIn, signUp, signInWithGoogle, signInWithKakao, loading } =
     useAuth();
+  const navigation = useNavigation();
 
   const handleEmailAuth = async () => {
     if (!email || !password) {
@@ -27,10 +29,14 @@ export default function LoginScreen() {
       return;
     }
 
-    if (isSignUp) {
-      await signUp(email, password);
-    } else {
-      await signIn(email, password);
+    const ok = isSignUp
+      ? await signUp(email, password)
+      : await signIn(email, password);
+
+    // 성공하면 로그인 창을 닫고 보던 화면으로 돌아간다
+    if (ok) {
+      if (navigation.canGoBack()) navigation.goBack();
+      else navigation.navigate("MainTabs" as never);
     }
   };
 

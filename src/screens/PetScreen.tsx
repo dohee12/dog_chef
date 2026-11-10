@@ -78,7 +78,7 @@ export default function PetScreen({ navigation }: any) {
         {pets.length === 0 ? (
           <View style={styles.emptyState}>
             <View style={styles.emptyIconContainer}>
-              <Ionicons name="paw" size={64} color="#9ca3af" />
+              <Ionicons name="paw" size={64} color="#52616D" />
             </View>
             <Text style={styles.emptyTitle}>등록된 반려견이 없습니다</Text>
             <Text style={styles.emptyText}>

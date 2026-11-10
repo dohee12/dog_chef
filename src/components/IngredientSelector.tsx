@@ -163,12 +163,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 20,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#EEF3F6",
     borderWidth: 1,
     borderColor: "transparent",
   },
   ingredientTagActive: {
-    backgroundColor: "#fff7ed",
+    backgroundColor: "#E2EEF4",
     borderColor: Colors.primary,
   },
   ingredientTagText: {
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
   },
   input: {
     flex: 1,
-    backgroundColor: "#f3f4f6",
+    backgroundColor: "#EEF3F6",
     borderRadius: 12,
     paddingHorizontal: 16,
     height: 48,
