@@ -12,10 +12,10 @@ let server;
 
 before(async () => {
   server = spawn(process.execPath, ['dist/main.js'], {
-    env: { ...process.env, PORT: String(PORT), SQLITE_PATH: DB, DATABASE_URL: '', JWT_SECRET: 'e2e-secret', SEED_SAMPLE_DATA: 'false' },
+    env: { ...process.env, PORT: String(PORT), SQLITE_PATH: DB, DATABASE_URL: '', JWT_SECRET: 'e2e-secret', SEED_SAMPLE_DATA: 'false', AUTH_RATE_LIMIT: '1000', MFDS_API_KEY: '' },
     stdio: 'ignore',
   });
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 120; i++) {
     try { if ((await fetch(`${BASE}/health`)).ok) return; } catch {}
     await new Promise((r) => setTimeout(r, 250));
   }
@@ -81,7 +81,7 @@ test('회원가입 · 로그인 · 반려견 · 레시피 · 찜 · 리뷰 전�
   let one = (await call('GET',`/recipes/${r.j.id}`)).j;
   assert.ok(one.reviews_count===2 && one.average_rating===3.5, 'stats: 2 reviews avg 3.5' + ' ' + JSON.stringify(one));
   const list = await call('GET',`/recipes/${r.j.id}/reviews`);
-  assert.ok(list.j.length===2 && list.j.every(x=>x.user_email), 'review list has user_email');
+  assert.ok(list.j.length===2 && list.j.every(x=>x.user_name && !('user_email' in x) && !x.user_name.includes('@')), 'review list has masked user_name, no email');
   assert.ok((await call('PATCH',`/reviews/${rv.j.id}`,{rating:1},A)).s===404, 'other user cannot edit review 404');
   await call('PATCH',`/reviews/${rv.j.id}`,{rating:3,comment:'보통'},Bt);
   one = (await call('GET',`/recipes/${r.j.id}`)).j;

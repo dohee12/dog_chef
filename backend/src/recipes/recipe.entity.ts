@@ -43,6 +43,14 @@ export class Recipe {
   @Column({ type: 'float', default: 0 })
   safety_score: number;
 
+  // 재료로 서버가 매번 다시 판정한다 (safe | caution | danger). 클라이언트가 보낸 값은 무시.
+  @Column({ default: 'safe' })
+  safety_level: string;
+
+  // 영양 값을 서버가 재료로 계산했는지(true), 작성자가 직접 넣었는지(false)
+  @Column({ default: false })
+  nutrition_auto: boolean;
+
   @Column({ type: 'simple-json', nullable: true })
   ingredients: string[] | null;
 

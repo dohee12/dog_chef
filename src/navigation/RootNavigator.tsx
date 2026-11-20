@@ -1,6 +1,7 @@
 import { useAuth } from "@/context/AuthContext";
 import LoginScreen from "@/screens/LoginScreen";
 import PetFormScreen from "@/screens/PetFormScreen";
+import ProfileScreen from "@/screens/ProfileScreen";
 import RecipeDetailScreen from "@/screens/RecipeDetailScreen";
 import RecipeFormScreen from "@/screens/RecipeFormScreen";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -67,6 +68,11 @@ export default function RootNavigator() {
         name="PetForm"
         component={PetFormScreen}
         options={{ title: "반려견 정보 작성", presentation: "modal" }}
+      />
+      <stack.Screen
+        name="Profile"
+        component={ProfileScreen}
+        options={{ title: "프로필 설정" }}
       />
     </stack.Navigator>
   );

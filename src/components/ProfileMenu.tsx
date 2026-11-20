@@ -57,7 +57,7 @@ export default function ProfileMenu() {
               </View>
               <View style={styles.userTextContainer}>
                 <Text style={styles.userName}>
-                  {user.email?.split("@")[0] || "사용자"}
+                  {user.nickname || user.email?.split("@")[0] || "사용자"}
                 </Text>
                 <Text style={styles.userEmail} numberOfLines={1}>
                   {user.email}
@@ -73,7 +73,7 @@ export default function ProfileMenu() {
               style={styles.menuItem}
               onPress={() => {
                 setShowMenu(false);
-                // TODO: 프로필 화면으로 이동
+                navigation.navigate("Profile");
               }}
             >
               <Ionicons

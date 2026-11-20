@@ -34,7 +34,7 @@ export class AuthService {
   async signIn({ email, password }: CredentialsDto) {
     const user = await this.users.findOne({
       where: { email: email.trim().toLowerCase() },
-      select: { id: true, email: true, password_hash: true },
+      select: { id: true, email: true, nickname: true, password_hash: true },
     });
     // 이메일이 없는지 비밀번호가 틀렸는지 구분해 알려주지 않는다 (계정 존재 여부 노출 방지)
     if (
@@ -49,13 +49,13 @@ export class AuthService {
   async me(id: string) {
     const user = await this.users.findOne({ where: { id } });
     if (!user) throw new UnauthorizedException('계정을 찾을 수 없습니다.');
-    return { id: user.id, email: user.email };
+    return { id: user.id, email: user.email, nickname: user.nickname };
   }
 
-  private issue(user: Pick<User, 'id' | 'email'>) {
+  private issue(user: Pick<User, 'id' | 'email'> & { nickname?: string | null }) {
     return {
       access_token: this.jwt.sign({ sub: user.id, email: user.email }),
-      user: { id: user.id, email: user.email },
+      user: { id: user.id, email: user.email, nickname: user.nickname ?? null },
     };
   }
 }

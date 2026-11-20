@@ -31,7 +31,7 @@ export default function AuthButton() {
           <Ionicons name="person-circle" size={32} color={Colors.primary} />
           <View style={styles.userTextContainer}>
             <Text style={styles.userName} numberOfLines={1}>
-              {user.email?.split("@")[0]}
+              {user.nickname || user.email?.split("@")[0]}
             </Text>
             <Text style={styles.userEmail} numberOfLines={1}>
               {user.email}

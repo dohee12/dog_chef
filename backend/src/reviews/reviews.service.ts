@@ -6,7 +6,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Recipe } from '../recipes/recipe.entity';
-import { User } from '../users/user.entity';
+import { displayName, User } from '../users/user.entity';
 import { CreateReviewDto, UpdateReviewDto } from './review.dto';
 import { Review } from './review.entity';
 
@@ -23,14 +23,30 @@ export class ReviewsService {
       where: { recipe_id: recipeId },
       order: { created_at: 'DESC' },
     });
-    // 작성자 이메일을 붙여 준다 (프론트의 user_email 표시용)
+    // 작성자 표시 이름을 붙여 준다. 이메일은 개인정보라 그대로 내보내지 않는다.
     const ids = [...new Set(rows.map((r) => r.user_id))];
     const users = ids.length ? await this.users.find({ where: { id: In(ids) } }) : [];
-    const emailOf = new Map(users.map((u) => [u.id, u.email]));
+    const userOf = new Map(users.map((u) => [u.id, u]));
     return rows.map((r) => ({
       ...r,
       images: r.images ?? [],
-      user_email: emailOf.get(r.user_id),
+      user_name: displayName(userOf.get(r.user_id)),
+    }));
+  }
+
+  /** 내가 쓴 리뷰 (레시피 제목과 함께) */
+  async listMine(userId: string) {
+    const rows = await this.reviews.find({ where: { user_id: userId }, order: { created_at: 'DESC' } });
+    const ids = [...new Set(rows.map((r) => r.recipe_id))];
+    const recipes = ids.length
+      ? await this.recipes.find({ where: { id: In(ids) }, select: { id: true, title: true, image: true } })
+      : [];
+    const recipeOf = new Map(recipes.map((r) => [r.id, r]));
+    return rows.map((r) => ({
+      ...r,
+      images: r.images ?? [],
+      recipe_title: recipeOf.get(r.recipe_id)?.title ?? null,
+      recipe_image: recipeOf.get(r.recipe_id)?.image ?? null,
     }));
   }
 
@@ -84,7 +100,7 @@ export class ReviewsService {
     return { recipe_id: recipeId };
   }
 
-  private async refreshStats(recipeId: number) {
+  async refreshStats(recipeId: number) {
     const row = await this.reviews
       .createQueryBuilder('r')
       .select('COUNT(*)', 'count')

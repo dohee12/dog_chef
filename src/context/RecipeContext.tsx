@@ -1,7 +1,6 @@
 import { ApiError, api, getCurrentUser, onAuthChange, toRemoteImage } from "@/lib/api";
 import { confirmAsync, notify } from "@/lib/dialog";
 import { Recipe, Review } from "@/types/Recipe";
-import { calculateTotalNutrition } from "@/utils/calculateNutritionFromIngredients";
 import { mockRecipes } from "@/utils/mockData";
 import React, { createContext, useContext, useEffect, useState } from "react";
 
@@ -25,40 +24,14 @@ const DEFAULT_INGREDIENTS = ["닭가슴살", "고구마", "연어", "당근", "�
 
 const RecipeContext = createContext<RecipeContextType | undefined>(undefined);
 
-const round2 = (n: number) => Math.round(n * 100) / 100;
-
-/** 재료 목록으로 영양 정보를 계산한다. 모르는 재료는 경고만 남긴다. */
-const nutritionFrom = (ingredients: string[]) => {
-  const n = calculateTotalNutrition(ingredients);
-  if (n.missingIngredients.length > 0) {
-    console.warn("영양 정보를 찾을 수 없는 재료:", n.missingIngredients);
-  }
-  return {
-    calories: round2(n.calories),
-    protein: round2(n.protein),
-    fat: round2(n.fat),
-    carbs: round2(n.carbs),
-    fiber: round2(n.fiber),
-  };
-};
-
-const withComputedNutrition = (item: any) => {
-  const hasNutrition = [item.calories, item.protein, item.fat, item.carbs, item.fiber].some(
-    (value) => value !== undefined && value !== null
-  );
-  if (hasNutrition || !item.ingredients || item.ingredients.length === 0) {
-    return item;
-  }
-  return { ...item, ...nutritionFrom(item.ingredients) };
-};
-
 /**
  * 서버 응답을 화면들이 쓰는 Recipe 모양으로 맞춘다.
  * 카드/상세 화면은 rating, reviews, nutrition 을 읽는데 서버는
  * average_rating, reviews_count, 낱개 영양 필드로 준다. 없으면 화면이 통째로 죽는다.
  */
+// 영양 값은 서버가 재료로 계산해서 채운다 (식약처 식품영양성분DB 또는 내장 값).
 const toRecipe = (item: any): Recipe => {
-  const r = withComputedNutrition(item);
+  const r = item;
   return {
     ...r,
     rating: Number(r.average_rating ?? r.rating ?? 0),
@@ -120,7 +93,6 @@ export const RecipeProvider = ({ children }: { children: React.ReactNode }) => {
       await api.post("/recipes", {
         ...recipeData,
         image: await toRemoteImage(recipeData.image),
-        ...(recipeData.ingredients?.length ? nutritionFrom(recipeData.ingredients) : {}),
       });
       notify("성공", "레시피가 등록되었습니다.");
       await loadRecipes();
@@ -135,14 +107,11 @@ export const RecipeProvider = ({ children }: { children: React.ReactNode }) => {
       notify("로그인 필요", "레시피를 수정하려면 로그인이 필요합니다.");
       return;
     }
-    // 재료가 바뀌었을 수 있으니 영양 정보를 다시 계산한다
-    const existing = recipes.find((r) => r.id === id);
-    const ingredientsToUse = recipeData.ingredients || existing?.ingredients || [];
+    // 재료가 바뀌면 서버가 영양 정보를 다시 계산한다
     try {
       await api.patch(`/recipes/${id}`, {
         ...recipeData,
         ...(recipeData.image !== undefined ? { image: await toRemoteImage(recipeData.image) } : {}),
-        ...(ingredientsToUse.length ? nutritionFrom(ingredientsToUse) : {}),
       });
       await loadRecipes();
       notify("성공", "레시피가 수정되었습니다.");

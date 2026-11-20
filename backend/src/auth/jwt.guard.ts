@@ -6,7 +6,10 @@ import {
   createParamDecorator,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { InjectRepository } from '@nestjs/typeorm';
 import type { Request } from 'express';
+import { Repository } from 'typeorm';
+import { User } from '../users/user.entity';
 
 export interface AuthUser {
   id: string;
@@ -26,15 +29,22 @@ function readUser(jwt: JwtService, req: AuthedRequest): AuthUser | undefined {
   }
 }
 
-/** 로그인 필수. 토큰이 없거나 틀리면 401. */
+/** 로그인 필수. 토큰이 없거나 틀리거나, 탈퇴한 계정이면 401. */
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
-  constructor(private readonly jwt: JwtService) {}
+  constructor(
+    private readonly jwt: JwtService,
+    @InjectRepository(User) private readonly users: Repository<User>,
+  ) {}
 
-  canActivate(ctx: ExecutionContext): boolean {
+  async canActivate(ctx: ExecutionContext): Promise<boolean> {
     const req = ctx.switchToHttp().getRequest<AuthedRequest>();
     const user = readUser(this.jwt, req);
     if (!user) throw new UnauthorizedException('로그인이 필요합니다.');
+    // 토큰은 7일간 유효하므로, 그사이 탈퇴한 계정의 토큰을 여기서 막는다
+    if (!(await this.users.exists({ where: { id: user.id } }))) {
+      throw new UnauthorizedException('계정을 찾을 수 없습니다. 다시 로그인해주세요.');
+    }
     req.user = user;
     return true;
   }

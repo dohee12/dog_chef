@@ -1,12 +1,16 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule, TypeOrmModuleOptions } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
+import { NutritionModule } from './nutrition/nutrition.module';
 import { PetsModule } from './pets/pets.module';
 import { RecipesModule } from './recipes/recipes.module';
 import { ReviewsModule } from './reviews/reviews.module';
 import { SeedModule } from './seed/seed.module';
 import { UploadsModule } from './uploads/uploads.module';
+import { UsersModule } from './users/users.module';
 
 // DATABASE_URL 이 있으면 Postgres, 없으면 설치가 필요 없는 SQLite 파일(sql.js)을 쓴다.
 function databaseOptions(): TypeOrmModuleOptions {
@@ -31,7 +35,13 @@ function databaseOptions(): TypeOrmModuleOptions {
 @Module({
   imports: [
     TypeOrmModule.forRootAsync({ useFactory: databaseOptions }),
+    // IP 하나당 1분에 RATE_LIMIT 번까지 (기본 300). 로그인·가입은 더 엄격하다 (auth.controller 참고).
+    ThrottlerModule.forRoot([
+      { name: 'default', ttl: 60_000, limit: Number(process.env.RATE_LIMIT ?? 300) },
+    ]),
     AuthModule,
+    NutritionModule,
+    UsersModule,
     PetsModule,
     RecipesModule,
     ReviewsModule,
@@ -39,5 +49,6 @@ function databaseOptions(): TypeOrmModuleOptions {
     SeedModule,
   ],
   controllers: [AppController],
+  providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],
 })
 export class AppModule {}

@@ -11,7 +11,7 @@ export interface Review {
   images?: string[]; // 리뷰 사진들
   created_at: string;
   updated_at: string;
-  user_email?: string; // 리뷰 작성자 이메일 (표시용)
+  user_name?: string; // 리뷰 작성자 표시 이름 (닉네임, 없으면 가린 이메일)
 }
 
 interface ReviewContextType {

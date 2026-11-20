@@ -8,6 +8,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import type { AuthUser } from '../auth/jwt.guard';
@@ -23,6 +24,28 @@ export class PetsController {
   @Get()
   findMine(@CurrentUser() user: AuthUser) {
     return this.pets.findMine(user.id);
+  }
+
+  /** 하루 권장 열량 등. activity=low|moderate|high */
+  @Get(':id/needs')
+  needs(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Query('activity') activity?: 'low' | 'moderate' | 'high',
+  ) {
+    const a = activity && ['low', 'moderate', 'high'].includes(activity) ? activity : undefined;
+    return this.pets.needs(user.id, id, a);
+  }
+
+  /** 이 반려견에게 맞는 레시피 추천 (위험·알레르기 재료 제외, 인기순) */
+  @Get(':id/recommendations')
+  recommendations(
+    @CurrentUser() user: AuthUser,
+    @Param('id', ParseIntPipe) id: number,
+    @Query('limit') limit?: string,
+  ) {
+    const n = Math.min(50, Math.max(1, Number(limit) || 10));
+    return this.pets.recommendations(user.id, id, n);
   }
 
   @Post()

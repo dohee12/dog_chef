@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnApplicationBootstrap } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import { recipeSafety } from '../nutrition/safety-rules';
 import { Recipe } from '../recipes/recipe.entity';
 import { SAMPLE_RECIPES } from './sample-recipes';
 
@@ -18,6 +19,11 @@ export class SeedService implements OnApplicationBootstrap {
   constructor(@InjectRepository(Recipe) private readonly recipes: Repository<Recipe>) {}
 
   async onApplicationBootstrap() {
+    await this.seedSamples();
+    await this.refreshSafetyLevels();
+  }
+
+  private async seedSamples() {
     if (process.env.SEED_SAMPLE_DATA === 'false') return;
     if ((await this.recipes.count()) > 0) return;
 
@@ -27,5 +33,19 @@ export class SeedService implements OnApplicationBootstrap {
       ),
     );
     this.logger.log(`예시 레시피 ${SAMPLE_RECIPES.length}개를 넣었습니다.`);
+  }
+
+  /** 안전 규칙이 바뀌었을 수 있으니 시작할 때 모든 레시피의 안전 등급을 다시 판정한다. */
+  private async refreshSafetyLevels() {
+    const rows = await this.recipes.find({ select: { id: true, ingredients: true, safety_level: true } });
+    let changed = 0;
+    for (const r of rows) {
+      const level = recipeSafety(r.ingredients).level;
+      if (level !== r.safety_level) {
+        await this.recipes.update(r.id, { safety_level: level });
+        changed++;
+      }
+    }
+    if (changed) this.logger.log(`안전 등급 ${changed}개를 다시 판정했습니다.`);
   }
 }

@@ -50,7 +50,7 @@ export function ReviewList({ recipeId }: ReviewListProps) {
         <View style={styles.reviewHeader}>
           <View style={styles.reviewInfo}>
             <Text style={styles.reviewAuthor}>
-              {item.user_email || "익명"}
+              {item.user_name || "익명"}
             </Text>
             {renderStars(item.rating)}
           </View>

@@ -13,10 +13,10 @@ let server;
 
 before(async () => {
   server = spawn(process.execPath, ['dist/main.js'], {
-    env: { ...process.env, PORT: String(PORT), SQLITE_PATH: DB, DATABASE_URL: '', JWT_SECRET: 'e2e-secret', SEED_SAMPLE_DATA: 'true', UPLOAD_DIR: UP, PUBLIC_URL: '' },
+    env: { ...process.env, PORT: String(PORT), SQLITE_PATH: DB, DATABASE_URL: '', JWT_SECRET: 'e2e-secret', SEED_SAMPLE_DATA: 'true', UPLOAD_DIR: UP, PUBLIC_URL: '', AUTH_RATE_LIMIT: '1000', MFDS_API_KEY: '' },
     stdio: 'ignore',
   });
-  for (let i = 0; i < 60; i++) {
+  for (let i = 0; i < 120; i++) {
     try { if ((await fetch(`${BASE}/health`)).ok) return; } catch {}
     await new Promise((r) => setTimeout(r, 250));
   }

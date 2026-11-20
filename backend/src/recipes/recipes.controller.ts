@@ -17,7 +17,12 @@ import {
   JwtAuthGuard,
   OptionalJwtAuthGuard,
 } from '../auth/jwt.guard';
-import { CreateRecipeDto, ListRecipesQuery, UpdateRecipeDto } from './recipe.dto';
+import {
+  AnalysisQuery,
+  CreateRecipeDto,
+  ListRecipesQuery,
+  UpdateRecipeDto,
+} from './recipe.dto';
 import { RecipesService } from './recipes.service';
 
 @Controller('recipes')
@@ -35,6 +40,37 @@ export class RecipesController {
   @UseGuards(JwtAuthGuard)
   likedIds(@CurrentUser() user: AuthUser) {
     return this.recipes.likedIds(user.id);
+  }
+
+  /** 찜한 레시피 전체 정보 (찜한 순서) */
+  @Get('liked/full')
+  @UseGuards(JwtAuthGuard)
+  likedRecipes(@CurrentUser() user: AuthUser) {
+    return this.recipes.likedRecipes(user.id);
+  }
+
+  /** 내가 올린 레시피 */
+  @Get('mine')
+  @UseGuards(JwtAuthGuard)
+  mine(@CurrentUser() user: AuthUser) {
+    return this.recipes.mine(user.id);
+  }
+
+  /** 카테고리·태그 목록과 개수 (검색 필터용) */
+  @Get('facets')
+  facets() {
+    return this.recipes.facets();
+  }
+
+  /** 안전성 + 영양 + (로그인 시) 내 반려견별 알레르기·열량 비율 */
+  @Get(':id/analysis')
+  @UseGuards(OptionalJwtAuthGuard)
+  analysis(
+    @Param('id', ParseIntPipe) id: number,
+    @Query() query: AnalysisQuery,
+    @CurrentUser() user?: AuthUser,
+  ) {
+    return this.recipes.analysis(id, user?.id, query.pet_id);
   }
 
   @Get(':id')

@@ -3,6 +3,7 @@ import ReviewSystem from "@/components/ReviewSystem";
 import { SafetyPanel } from "@/components/SafetyBadge";
 import RecipeImage from "@/components/RecipeImage";
 import { NutritionInfo } from "@/components/NutritionInfo";
+import NutritionAnalysis from "@/components/NutritionAnalysis";
 import { RecipeActions } from "@/components/RecipeActions";
 import { ReviewList } from "@/components/ReviewList";
 import { ReviewForm } from "@/components/ReviewForm";
@@ -271,6 +272,10 @@ export default function RecipeDetailScreen({ route, navigation }: any) {
                 carbs={recipe.carbs}
                 fiber={recipe.fiber}
                 servings={recipe.servings}
+              />
+              <NutritionAnalysis
+                recipeId={Number(recipe.id)}
+                refreshKey={`${recipe.ingredients.join("|")}:${recipe.servings}:${pets.length}`}
               />
             </View>
           ) : (

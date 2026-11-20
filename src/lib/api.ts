@@ -12,6 +12,8 @@ const USER_KEY = "dogchef.user";
 export interface AuthUser {
   id: string;
   email: string;
+  /** 리뷰 등에 보여줄 이름. 없으면 null */
+  nickname?: string | null;
 }
 
 export class ApiError extends Error {
@@ -58,6 +60,11 @@ export async function setSession(token: string | null, user: AuthUser | null) {
     // 저장소를 못 써도(시크릿 창 등) 이번 접속 동안은 로그인 상태가 유지된다.
   }
   listeners.forEach((fn) => fn(user));
+}
+
+/** 닉네임 변경처럼 토큰은 그대로이고 사용자 정보만 바뀔 때 */
+export async function updateSessionUser(user: AuthUser) {
+  if (currentToken) await setSession(currentToken, user);
 }
 
 /** 앱 시작 시 저장된 로그인을 불러오고, 서버에 아직 유효한지 확인한다. */
@@ -180,4 +187,6 @@ export const api = {
   post: <T = any>(path: string, body?: unknown) => request<T>("POST", path, body),
   patch: <T = any>(path: string, body?: unknown) => request<T>("PATCH", path, body),
   delete: <T = any>(path: string) => request<T>("DELETE", path),
+  /** 본문이 필요한 DELETE (예: 회원 탈퇴 비밀번호 확인) */
+  deleteWithBody: <T = any>(path: string, body: unknown) => request<T>("DELETE", path, body),
 };

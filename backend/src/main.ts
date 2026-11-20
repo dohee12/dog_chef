@@ -1,3 +1,4 @@
+import './load-env';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { NestExpressApplication } from '@nestjs/platform-express';
@@ -6,12 +7,6 @@ import { resolve } from 'node:path';
 import { AppModule } from './app.module';
 import { UPLOAD_DIR } from './uploads/uploads.controller';
 
-// .env 가 있으면 읽는다 (Node 내장 기능). 운영 서버처럼 환경 변수를 직접 주면 파일이 없어도 된다.
-try {
-  process.loadEnvFile();
-} catch {
-  // .env 없음
-}
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
