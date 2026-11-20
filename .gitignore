@@ -45,3 +45,6 @@ app-example
 
 # logs
 *.log
+
+# 발표 자료 (용량 큼, 저장소 밖 D:\dog_chef_PPT_backup 에 보관)
+PPT/

@@ -1,0 +1,228 @@
+{
+ "recipes": [
+  {
+   "id": 1,
+   "title": "닭가슴살 단호박죽",
+   "category": "poultry",
+   "desc": "닭가슴살과 단호박을 푹 끓인 부드러운 죽",
+   "image": null,
+   "author": "초코 보호자",
+   "rating": 4.9,
+   "reviews": 128,
+   "ingredients": [
+    "닭가슴살 100g",
+    "단호박 50g",
+    "쌀 30g",
+    "당근 20g",
+    "파슬리 약간"
+   ],
+   "seasons": [
+    "가을",
+    "겨울"
+   ],
+   "steps": [
+    "닭가슴살을 삶아 잘게 찢어요.",
+    "단호박·당근은 껍질을 벗겨 푹 익혀요.",
+    "불린 쌀과 함께 물을 넉넉히 넣고 죽처럼 끓여요.",
+    "식혀서 줘요."
+   ]
+  },
+  {
+   "id": 2,
+   "title": "소고기 브로콜리 화식",
+   "category": "meat",
+   "desc": "기름기 뺀 소고기 우둔과 데친 브로콜리",
+   "image": null,
+   "author": "보리 보호자",
+   "rating": 4.8,
+   "reviews": 95,
+   "ingredients": [
+    "소고기 우둔 100g",
+    "브로콜리 30g",
+    "고구마 50g"
+   ],
+   "seasons": [],
+   "steps": [
+    "소고기 우둔의 기름을 떼고 잘게 썰어 익혀요.",
+    "브로콜리는 데치고 고구마는 껍질을 벗겨 쪄요.",
+    "모두 잘게 썰어 섞어요."
+   ]
+  },
+  {
+   "id": 3,
+   "title": "고구마 쌀쿠키",
+   "category": "grain",
+   "desc": "밀가루 없이 쌀가루와 고구마로 구운 쿠키",
+   "image": null,
+   "author": "코코 보호자",
+   "rating": 4.9,
+   "reviews": 84,
+   "ingredients": [
+    "고구마 100g",
+    "쌀가루 50g",
+    "달걀 1개"
+   ],
+   "seasons": [
+    "가을",
+    "겨울"
+   ],
+   "steps": [
+    "고구마를 쪄서 으깨요.",
+    "쌀가루와 달걀을 넣어 반죽해요.",
+    "얇게 펴서 160도 오븐에 20분 구워요."
+   ]
+  },
+  {
+   "id": 4,
+   "title": "단호박 락토프리 치즈볼",
+   "category": "eggdairy",
+   "desc": "락토프리 우유로 만든 치즈와 단호박 간식",
+   "image": null,
+   "author": "루피 보호자",
+   "rating": 4.8,
+   "reviews": 67,
+   "ingredients": [
+    "단호박 80g",
+    "락토프리 우유 100ml",
+    "쌀가루 30g"
+   ],
+   "seasons": [
+    "가을"
+   ],
+   "steps": [
+    "락토프리 우유를 데워 치즈를 만들어요.",
+    "찐 단호박과 쌀가루를 섞어 동그랗게 빚어요.",
+    "찜기에 10분 쪄요."
+   ]
+  },
+  {
+   "id": 5,
+   "title": "황태 달걀죽",
+   "category": "fish",
+   "desc": "물에 담가 짠기를 뺀 황태와 달걀노른자 죽",
+   "image": null,
+   "author": "보양마스터",
+   "rating": 5.0,
+   "reviews": 210,
+   "ingredients": [
+    "황태 20g",
+    "달걀 1개",
+    "쌀 30g"
+   ],
+   "seasons": [
+    "겨울"
+   ],
+   "steps": [
+    "황태를 물에 담가 짠기를 빼요(물은 버려요).",
+    "가시를 빼고 잘게 찢어요.",
+    "쌀과 함께 끓이다가 달걀을 풀어 익혀요."
+   ]
+  },
+  {
+   "id": 6,
+   "title": "오리안심 사과 생일케이크",
+   "category": "poultry",
+   "desc": "오리안심 패티와 사과, 쌀가루 시트",
+   "image": null,
+   "author": "파티멍셰프",
+   "rating": 5.0,
+   "reviews": 156,
+   "ingredients": [
+    "오리안심 100g",
+    "사과 1/2개",
+    "쌀가루 50g"
+   ],
+   "seasons": [],
+   "steps": [
+    "오리안심 기름을 떼고 다져서 패티로 익혀요.",
+    "사과는 씨와 심을 빼고 잘게 썰어요.",
+    "쌀가루 시트에 올려 케이크 모양을 만들어요."
+   ]
+  },
+  {
+   "id": 7,
+   "title": "연어 귀리 구이",
+   "category": "fish",
+   "desc": "가시를 뺀 연어를 익혀 귀리와 구운 요리",
+   "image": null,
+   "author": "피쉬러버",
+   "rating": 4.8,
+   "reviews": 79,
+   "ingredients": [
+    "연어 100g",
+    "귀리 30g",
+    "올리브유 1작은술"
+   ],
+   "seasons": [
+    "봄"
+   ],
+   "steps": [
+    "연어 가시를 모두 빼요.",
+    "귀리를 익혀요.",
+    "올리브유를 아주 조금만 두르고 연어를 완전히 익혀요."
+   ]
+  },
+  {
+   "id": 8,
+   "title": "수박 블루베리 얼음",
+   "category": "veg",
+   "desc": "씨를 뺀 수박과 블루베리를 얼린 여름 간식",
+   "image": null,
+   "author": "여름멍",
+   "rating": 4.7,
+   "reviews": 41,
+   "ingredients": [
+    "수박 100g",
+    "블루베리 30g"
+   ],
+   "seasons": [
+    "여름"
+   ],
+   "steps": [
+    "수박은 씨와 껍질을 빼고 작게 잘라요.",
+    "블루베리와 함께 얼음틀에 넣어 얼려요."
+   ]
+  }
+ ],
+ "pets": [
+  {
+   "key": "choco",
+   "name": "초코",
+   "breed": "말티즈",
+   "age": 3,
+   "weight": 8.0,
+   "gender": "male",
+   "allergies": [
+    "dairy"
+   ],
+   "conditions": [],
+   "img": "https://images.unsplash.com/photo-1543466835-00a7907e9de1?q=80&w=200"
+  },
+  {
+   "key": "bori",
+   "name": "보리",
+   "breed": "골든리트리버",
+   "age": 2,
+   "weight": 24.5,
+   "gender": "female",
+   "allergies": [],
+   "conditions": [
+    "pancreatitis"
+   ],
+   "img": "https://images.unsplash.com/photo-1552053831-71594a27632d?q=80&w=200"
+  },
+  {
+   "key": "coco",
+   "name": "코코",
+   "breed": "토이푸들",
+   "age": 1,
+   "weight": 3.8,
+   "gender": "female",
+   "allergies": [
+    "chicken"
+   ],
+   "conditions": [],
+   "img": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?q=80&w=200"
+  }
+ ]
+}
