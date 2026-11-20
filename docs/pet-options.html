@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>내 반려견 화면 비교</title>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<style>
+  :root { --primary:#1D5C7A; --primary-light:#E2EEF4; --primary-dark:#123F55; --bg:#F5F8FA; --light-bg:#EEF3F6; --text:#14212B; --text-light:#52616D; --border-light:#DDE5EA;
+          --safety:#1E6B4F; --safety-bg:#E1F1EA; --caution:#7A4F00; --caution-bg:#FDF3DC; --danger:#B42318; --danger-bg:#FDECEC; }
+  * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif; }
+  body { background:#E6EEF3; color:var(--text); padding:16px; overflow-x:hidden; }
+  h1 { font-size:20px; font-weight:800; margin-bottom:4px; }
+  .sub { font-size:13px; color:var(--text-light); margin-bottom:16px; line-height:1.5; }
+  .grid { display:flex; gap:24px; width:max-content; transform-origin:top left; }
+  .opt { width:360px; flex-shrink:0; }
+  .opt-name { font-size:15px; font-weight:800; color:var(--primary-dark); margin-bottom:4px; }
+  .pros { font-size:12px; line-height:1.55; color:var(--text-light); margin-bottom:10px; min-height:112px; }
+  .pros b.p { color:var(--safety); } .pros b.c { color:var(--danger); }
+
+  .phone { position:relative; height:680px; background:var(--bg); border:5px solid #CBD5E1; border-radius:30px; overflow:hidden; display:flex; flex-direction:column; }
+  .hdr { background:white; padding:9px 14px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-light); flex-shrink:0; }
+  .logo { display:flex; align-items:center; gap:5px; font-size:16px; font-weight:800; color:var(--primary); }
+  .logo span { width:24px; height:24px; border-radius:7px; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-size:13px; }
+  .pets { display:flex; align-items:center; gap:5px; background:var(--light-bg); border:1px solid var(--border-light); border-radius:20px; padding:3px 8px 3px 4px; font-size:10px; font-weight:800; color:var(--primary-dark); }
+  .av { width:22px; height:22px; border-radius:50%; display:block; background:#D8C3A5; flex-shrink:0; }
+  .av.b { background:#B98B5E; } .av.c { background:#7FA7BF; }
+  .av.on { outline:2px solid var(--primary); outline-offset:1px; }
+  .body { flex:1; padding:12px; overflow:hidden; }
+  .tabbar { height:56px; background:white; border-top:1px solid var(--border-light); display:flex; align-items:center; flex-shrink:0; }
+  .tab { flex:1; display:flex; flex-direction:column; align-items:center; gap:2px; font-size:9.5px; font-weight:700; color:var(--text-light); }
+  .tab ion-icon { font-size:19px; } .tab.on { color:var(--primary); }
+  .tab.center { position:relative; top:-12px; } .tab.center b { width:44px; height:44px; border-radius:22px; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-size:24px; border:3px solid white; box-shadow:0 4px 10px rgba(29,92,122,.35); }
+  .title { font-size:19px; font-weight:800; margin-bottom:2px; }
+  .hint { font-size:11px; color:var(--text-light); margin-bottom:10px; line-height:1.45; }
+  .tag { display:inline-flex; align-items:center; gap:3px; font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px; }
+  .tag.d { background:var(--danger-bg); color:var(--danger); } .tag.c { background:var(--caution-bg); color:var(--caution); }
+  .tag.s { background:var(--safety-bg); color:var(--safety); } .tag.p { background:var(--primary-light); color:var(--primary-dark); }
+  .btn { display:flex; align-items:center; justify-content:center; gap:5px; background:var(--primary); color:white; font-size:12.5px; font-weight:800; border-radius:11px; padding:11px; }
+  .btn.ghost { background:var(--light-bg); color:var(--primary-dark); }
+
+  /* 1안 */
+  .pcard { background:white; border:1.5px solid var(--border-light); border-radius:14px; padding:11px; display:flex; gap:10px; align-items:center; margin-bottom:8px; }
+  .pcard.on { border-color:var(--primary); background:#F7FAFC; }
+  .pcard .ph { width:46px; height:46px; }
+  .pcard .nm { font-size:14px; font-weight:800; display:flex; align-items:center; gap:5px; }
+  .pcard .dt { font-size:11px; color:var(--text-light); margin:2px 0 4px; }
+  .pcard .tags { display:flex; flex-wrap:wrap; gap:3px; }
+  .pcard .edit { margin-left:auto; width:34px; height:34px; border-radius:17px; background:var(--light-bg); display:flex; align-items:center; justify-content:center; color:var(--primary); font-size:16px; flex-shrink:0; }
+  .radio { width:18px; height:18px; border-radius:9px; border:2px solid #B8C6CF; flex-shrink:0; }
+  .radio.on { border:5px solid var(--primary); }
+  .dim { position:absolute; inset:0; background:rgba(20,33,43,.42); }
+  .sheet { position:absolute; left:0; right:0; bottom:0; background:white; border-radius:18px 18px 0 0; padding:12px 14px 14px; }
+  .grab { width:36px; height:4px; border-radius:2px; background:#CBD5E1; margin:0 auto 10px; }
+  .sh-t { font-size:14.5px; font-weight:800; margin-bottom:8px; display:flex; justify-content:space-between; }
+  .seg { display:flex; background:var(--light-bg); border-radius:10px; padding:3px; margin-bottom:10px; }
+  .seg div { flex:1; text-align:center; font-size:11.5px; font-weight:700; color:var(--text-light); padding:6px 0; border-radius:8px; }
+  .seg div.on { background:white; color:var(--primary-dark); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  .chips { display:flex; flex-wrap:wrap; gap:5px; margin-bottom:10px; }
+  .chip { font-size:11px; font-weight:700; padding:6px 9px; border-radius:15px; background:var(--light-bg); color:var(--text-light); }
+  .chip small { font-size:9px; opacity:.7; margin-left:2px; }
+  .chip.on { background:var(--danger-bg); color:var(--danger); outline:1.5px solid #F3B8B8; }
+  .chip.oc { background:var(--caution-bg); color:var(--caution); outline:1.5px solid #F1D58F; }
+  .note { font-size:10.5px; color:var(--text-light); line-height:1.45; margin-bottom:10px; }
+
+  /* 2안 */
+  .sel { display:flex; gap:12px; margin-bottom:12px; align-items:flex-start; }
+  .sel div { display:flex; flex-direction:column; align-items:center; gap:3px; font-size:10.5px; font-weight:700; color:var(--text-light); }
+  .sel .av { width:44px; height:44px; }
+  .sel .on { color:var(--primary-dark); font-weight:800; }
+  .sel .add { width:44px; height:44px; border-radius:22px; border:1.5px dashed #B8C6CF; display:flex; align-items:center; justify-content:center; color:var(--text-light); font-size:20px; }
+  .hero { background:white; border:1px solid var(--border-light); border-radius:16px; padding:12px; display:flex; gap:11px; align-items:center; margin-bottom:10px; }
+  .hero .av { width:58px; height:58px; }
+  .hero .nm { font-size:17px; font-weight:800; }
+  .hero .dt { font-size:11.5px; color:var(--text-light); margin-top:2px; }
+  .hero .ed { margin-left:auto; font-size:11px; font-weight:800; color:var(--primary); background:var(--primary-light); padding:5px 9px; border-radius:12px; }
+  .box { background:white; border:1px solid var(--border-light); border-radius:14px; padding:10px 12px; margin-bottom:8px; }
+  .box-h { display:flex; justify-content:space-between; align-items:center; font-size:12.5px; font-weight:800; margin-bottom:6px; }
+  .box-h a { font-size:10.5px; color:var(--primary); font-weight:800; text-decoration:none; }
+  .box p { font-size:11px; color:var(--text-light); line-height:1.5; }
+  .stat { display:flex; gap:6px; }
+  .stat div { flex:1; border-radius:10px; padding:7px 4px; text-align:center; font-size:10px; font-weight:700; }
+  .stat b { display:block; font-size:17px; }
+  .stat .s1 { background:var(--safety-bg); color:var(--safety); } .stat .s2 { background:var(--caution-bg); color:var(--caution); } .stat .s3 { background:var(--danger-bg); color:var(--danger); }
+
+  /* 3안 */
+  .mini { background:white; border:1.5px solid var(--border-light); border-radius:12px; padding:8px 10px; display:flex; align-items:center; gap:8px; margin-bottom:6px; font-size:12px; font-weight:800; }
+  .mini.on { border-color:var(--primary); }
+  .mini small { font-size:10.5px; color:var(--text-light); font-weight:600; }
+  .mini .chev { margin-left:auto; color:var(--text-light); }
+  .full { position:absolute; inset:0; background:white; display:flex; flex-direction:column; }
+  .full-h { padding:11px 14px; display:flex; align-items:center; gap:8px; border-bottom:1px solid var(--border-light); font-size:14px; font-weight:800; }
+  .steps { display:flex; gap:4px; padding:10px 14px 0; }
+  .steps i { flex:1; height:4px; border-radius:2px; background:var(--border-light); display:block; }
+  .steps i.on { background:var(--primary); }
+  .step-l { font-size:10.5px; color:var(--text-light); padding:6px 14px 0; font-weight:700; }
+  .full-b { flex:1; padding:10px 14px; overflow:hidden; }
+  .q { font-size:16px; font-weight:800; margin-bottom:4px; line-height:1.35; }
+  .full-f { padding:10px 14px 14px; display:flex; gap:8px; border-top:1px solid var(--border-light); }
+  .full-f .btn { flex:1; }
+</style>
+</head>
+<body>
+  <h1>내 반려견 화면 비교</h1>
+  <div class="sub">세 안 모두 같은 정보를 담았어요. 기본 정보, 알레르기 11종(개 297마리 중 비율), 건강 상태 7종, 품종으로 자동 안내되는 위험이에요. <b>누르면 선택</b>, <b>연필·편집 버튼을 누르면 수정</b>으로 나눴어요.</div>
+  <div class="wrap"><div class="grid">
+
+    <!-- 1안 -->
+    <div class="opt">
+      <div class="opt-name">1안. 카드 목록 + 아래에서 올라오는 편집 시트</div>
+      <div class="pros"><b class="p">좋은 점</b> 지금 v12 목록을 거의 그대로 써요. 카드를 누르면 선택되고, ✏️을 누르면 시트가 올라와서 목록을 벗어나지 않고 고쳐요. 만들기 가장 쉬워요.<br>
+        <b class="c">아쉬운 점</b> 이 아이에게 왜 레시피가 걸러지는지 한눈에 보이지 않아요. 시트 안 칩이 많으면 좁아요.</div>
+      <div class="phone">
+        <div class="hdr"><div class="logo"><span><ion-icon name="paw"></ion-icon></span>멍슐랭</div><div class="pets"><i class="av"></i><i class="av b"></i><i class="av c on"></i>코코 (3.8kg)</div></div>
+        <div class="body">
+          <div class="title">내 반려견</div>
+          <div class="hint">카드를 누르면 그 아이 기준으로 레시피를 걸러요.</div>
+          <div class="pcard"><span class="radio"></span><i class="av ph"></i><div><div class="nm">초코 <ion-icon name="male" style="color:#3B82F6"></ion-icon></div><div class="dt">말티즈 · 3살 · 8kg</div><div class="tags"><span class="tag d">🚫 우유·유제품</span></div></div><span class="edit"><ion-icon name="create-outline"></ion-icon></span></div>
+          <div class="pcard"><span class="radio"></span><i class="av b ph"></i><div><div class="nm">보리 <ion-icon name="female" style="color:#EC4899"></ion-icon></div><div class="dt">골든리트리버 · 2살 · 24.5kg</div><div class="tags"><span class="tag c">🩺 췌장염</span></div></div><span class="edit"><ion-icon name="create-outline"></ion-icon></span></div>
+          <div class="pcard on"><span class="radio on"></span><i class="av c ph"></i><div><div class="nm">코코 <ion-icon name="female" style="color:#EC4899"></ion-icon></div><div class="dt">토이푸들 · 1살 · 3.8kg</div><div class="tags"><span class="tag d">🚫 닭고기</span><span class="tag c">🐕 췌장염 잘 걸리는 품종</span></div></div><span class="edit"><ion-icon name="create-outline"></ion-icon></span></div>
+        </div>
+        <div class="dim"></div>
+        <div class="sheet">
+          <div class="grab"></div>
+          <div class="sh-t">코코 정보 고치기 <ion-icon name="close" style="color:var(--text-light)"></ion-icon></div>
+          <div class="seg"><div>기본 정보</div><div class="on">알레르기</div><div>건강 상태</div></div>
+          <div class="note">해당하는 걸 모두 골라 주세요. 숫자는 음식 알레르기가 있는 개 297마리 중 비율이에요.</div>
+          <div class="chips">
+            <span class="chip">소고기<small>34%</small></span><span class="chip">우유·유제품<small>17%</small></span><span class="chip on">닭고기<small>15%</small></span><span class="chip">밀<small>13%</small></span>
+            <span class="chip">콩(대두)<small>6%</small></span><span class="chip">양고기<small>5%</small></span><span class="chip">옥수수<small>4%</small></span><span class="chip">달걀<small>4%</small></span>
+            <span class="chip">돼지고기<small>2%</small></span><span class="chip">생선<small>2%</small></span><span class="chip">쌀<small>2%</small></span><span class="chip">+ 직접 입력</span>
+          </div>
+          <div class="btn">저장하기</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2안 -->
+    <div class="opt">
+      <div class="opt-name">2안. 한 아이씩 보는 "식단 안전 프로필" (추천)</div>
+      <div class="pros"><b class="p">좋은 점</b> 위에서 아이를 고르면 그 아이 기준으로 무엇을 막고 무엇을 조심하는지, 맞는 레시피가 몇 개인지 바로 보여 줘요. 앱의 핵심 기능(맞춤 판정)이 왜 그렇게 동작하는지 이해돼요.<br>
+        <b class="c">아쉬운 점</b> 여러 아이를 한눈에 비교하기는 어려워요. 화면이 세로로 길어요.</div>
+      <div class="phone">
+        <div class="hdr"><div class="logo"><span><ion-icon name="paw"></ion-icon></span>멍슐랭</div><div class="pets"><i class="av"></i><i class="av b"></i><i class="av c on"></i>코코 (3.8kg)</div></div>
+        <div class="body">
+          <div class="sel"><div><i class="av"></i>초코</div><div><i class="av b"></i>보리</div><div class="on"><i class="av c on"></i>코코</div><div><span class="add">+</span>추가</div></div>
+          <div class="hero"><i class="av c"></i><div><div class="nm">코코 <ion-icon name="female" style="color:#EC4899; font-size:14px"></ion-icon></div><div class="dt">토이푸들 · 1살 · 3.8kg · 중성화</div></div><span class="ed">✏️ 편집</span></div>
+          <div class="box"><div class="box-h">레시피 8개를 코코 기준으로 보면 <a>목록 보기 ›</a></div>
+            <div class="stat"><div class="s1"><b>4</b>맞아요</div><div class="s2"><b>3</b>주의</div><div class="s3"><b>1</b>안 돼요</div></div></div>
+          <div class="box"><div class="box-h">🚫 막는 재료 <a>고치기 ›</a></div><span class="tag d">닭고기 알레르기</span> <p style="margin-top:5px">닭고기가 든 레시피는 보여 주지 않아요. 생선은 함께 반응할 수 있어 주의로 표시해요.</p></div>
+          <div class="box"><div class="box-h">🩺 건강 상태 <a>고치기 ›</a></div><p>등록된 건강 상태가 없어요.</p></div>
+          <div class="box" style="background:#FFFBF3; border-color:#F1D58F;"><div class="box-h">🐕 토이푸들이라 알아 두세요</div><p>췌장염에 잘 걸리는 품종으로 알려져 있어요. 기름진 재료는 주의로 표시해요. <span class="tag p">A Merck</span></p></div>
+        </div>
+        <div class="tabbar"><div class="tab"><ion-icon name="home"></ion-icon>홈</div><div class="tab"><ion-icon name="heart"></ion-icon>찜</div><div class="tab center"><b><ion-icon name="add"></ion-icon></b></div><div class="tab"><ion-icon name="medkit"></ion-icon>먹었어요</div><div class="tab on"><ion-icon name="paw"></ion-icon>내 반려견</div></div>
+      </div>
+    </div>
+
+    <!-- 3안 -->
+    <div class="opt">
+      <div class="opt-name">3안. 목록 + 질문형 단계 편집</div>
+      <div class="pros"><b class="p">좋은 점</b> 편집을 누르면 "알레르기가 있나요?"처럼 한 화면에 질문 하나씩 나와요. 처음 등록하는 보호자도 빠뜨리지 않고 채워요. 칩이 큼직해서 누르기 쉬워요.<br>
+        <b class="c">아쉬운 점</b> 하나만 고치려 해도 단계를 넘겨야 해요(건너뛰기 필요). 화면 수가 가장 많아 만드는 양도 많아요.</div>
+      <div class="phone">
+        <div class="hdr"><div class="logo"><span><ion-icon name="paw"></ion-icon></span>멍슐랭</div><div class="pets"><i class="av"></i><i class="av b"></i><i class="av c on"></i>코코 (3.8kg)</div></div>
+        <div class="body">
+          <div class="title">내 반려견</div>
+          <div class="mini"><span class="radio"></span><i class="av"></i>초코 <small>알레르기 1</small><ion-icon class="chev" name="create-outline"></ion-icon></div>
+          <div class="mini on"><span class="radio on"></span><i class="av c"></i>코코 <small>알레르기 1 · 품종 주의 1</small><ion-icon class="chev" name="create-outline"></ion-icon></div>
+        </div>
+        <div class="full">
+          <div class="full-h"><ion-icon name="chevron-back"></ion-icon>코코 정보 고치기<span style="margin-left:auto; font-size:11.5px; color:var(--primary);">건너뛰기</span></div>
+          <div class="steps"><i class="on"></i><i class="on"></i><i></i><i></i></div>
+          <div class="step-l">2 / 4 · 알레르기</div>
+          <div class="full-b">
+            <div class="q">코코가 먹고 탈이 난 음식이 있나요?</div>
+            <div class="note">수의사에게 알레르기 진단을 받은 음식을 골라 주세요. 많이 보고된 순서예요.</div>
+            <div class="chips" style="gap:7px;">
+              <span class="chip" style="padding:9px 12px; font-size:12px;">소고기<small>34%</small></span><span class="chip" style="padding:9px 12px; font-size:12px;">우유·유제품<small>17%</small></span>
+              <span class="chip on" style="padding:9px 12px; font-size:12px;">닭고기<small>15%</small></span><span class="chip" style="padding:9px 12px; font-size:12px;">밀<small>13%</small></span>
+              <span class="chip" style="padding:9px 12px; font-size:12px;">콩(대두)<small>6%</small></span><span class="chip" style="padding:9px 12px; font-size:12px;">양고기<small>5%</small></span>
+              <span class="chip" style="padding:9px 12px; font-size:12px;">옥수수<small>4%</small></span><span class="chip" style="padding:9px 12px; font-size:12px;">달걀<small>4%</small></span>
+              <span class="chip" style="padding:9px 12px; font-size:12px;">돼지고기<small>2%</small></span><span class="chip" style="padding:9px 12px; font-size:12px;">생선<small>2%</small></span>
+              <span class="chip" style="padding:9px 12px; font-size:12px;">쌀<small>2%</small></span><span class="chip" style="padding:9px 12px; font-size:12px;">+ 직접 입력</span>
+            </div>
+            <div class="note" style="background:var(--light-bg); padding:8px 10px; border-radius:10px;">💡 닭고기를 고르면 생선 레시피에 "함께 반응할 수 있어요" 주의가 붙어요.</div>
+          </div>
+          <div class="full-f"><div class="btn ghost">이전</div><div class="btn">다음 · 건강 상태</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div></div>
+<script>
+  function fit() {
+    const g = document.querySelector('.grid'), w = document.querySelector('.wrap');
+    g.style.transform = 'none'; w.style.height = 'auto';
+    const top = g.getBoundingClientRect().top + window.scrollY;
+    const k = Math.min(1, (window.innerWidth - 32) / g.offsetWidth, (window.innerHeight - top - 16) / g.offsetHeight);
+    g.style.transform = `scale(${k})`; w.style.height = g.offsetHeight * k + 'px';
+  }
+  window.addEventListener('resize', fit); window.addEventListener('load', fit); fit();
+</script>
+</body>
+</html>

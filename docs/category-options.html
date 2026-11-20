@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>카테고리 디자인 비교</title>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<style>
+  :root { --primary:#1D5C7A; --primary-light:#E2EEF4; --primary-dark:#123F55; --bg:#F5F8FA; --light-bg:#EEF3F6; --text:#14212B; --text-light:#52616D; --border-light:#DDE5EA; }
+  * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif; }
+  body { background:#E6EEF3; color:var(--text); padding:24px 16px; }
+  h1 { font-size:20px; font-weight:800; margin-bottom:4px; }
+  .sub { font-size:13px; color:var(--text-light); margin-bottom:20px; }
+  .grid { display:flex; flex-wrap:wrap; gap:20px; }
+  .opt { width:400px; max-width:100%; }
+  .opt-name { font-size:15px; font-weight:800; margin-bottom:4px; color:var(--primary-dark); }
+  .opt-desc { font-size:12px; color:var(--text-light); margin-bottom:8px; line-height:1.5; min-height:36px; }
+  .phone { background:var(--bg); border:5px solid #CBD5E1; border-radius:24px; padding:14px; overflow:hidden; }
+  .search { background:white; border:1.5px solid var(--border-light); border-radius:12px; padding:9px 12px; font-size:12.5px; color:#8A97A1; margin-bottom:12px; display:flex; gap:6px; align-items:center; }
+  .feed-title { font-size:13.5px; font-weight:800; margin:4px 0 8px; }
+  .card { background:white; border:1px solid var(--border-light); border-radius:14px; height:70px; }
+
+  /* 0. 지금 */
+  .v0 { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:12px; }
+  .v0 div { height:36px; display:flex; align-items:center; justify-content:center; gap:4px; background:white; border:1.5px solid var(--border-light); border-radius:10px; font-size:12px; font-weight:700; white-space:nowrap; }
+  .v0 div.on { background:var(--primary); color:white; border-color:var(--primary); }
+
+  /* A. 원형 아이콘 */
+  .va { display:grid; grid-template-columns:repeat(4,1fr); gap:10px 4px; margin-bottom:12px; }
+  .va div { display:flex; flex-direction:column; align-items:center; gap:4px; font-size:11.5px; font-weight:700; color:var(--text); }
+  .va span.ic { width:44px; height:44px; border-radius:22px; background:white; border:1px solid var(--border-light); display:flex; align-items:center; justify-content:center; font-size:21px; color:var(--primary); }
+  .va div.on span.ic { background:var(--primary); color:white; border-color:var(--primary); }
+  .va div.on { color:var(--primary-dark); font-weight:800; }
+  .va div.season span.ic { background:#FFF3E3; border-color:#F6D6A8; color:#C2620A; }
+
+  /* B. 라인 아이콘 칩 */
+  .vb { display:grid; grid-template-columns:repeat(4,1fr); gap:6px; margin-bottom:12px; }
+  .vb div { height:34px; display:flex; align-items:center; justify-content:center; gap:4px; background:var(--light-bg); border-radius:17px; font-size:12px; font-weight:700; color:var(--text-light); white-space:nowrap; }
+  .vb div ion-icon { font-size:15px; color:var(--primary); }
+  .vb div.on { background:var(--primary); color:white; }
+  .vb div.on ion-icon { color:white; }
+  .vb div.season { background:#FFF3E3; color:#9A4A06; }
+  .vb div.season ion-icon { color:#C2620A; }
+
+  /* C. 계절 배너 + 한 줄 스크롤 */
+  .banner { display:flex; align-items:center; gap:10px; background:linear-gradient(90deg,#FFF3E3,#FFE7CC); border:1px solid #F6D6A8; border-radius:14px; padding:10px 12px; margin-bottom:10px; }
+  .banner .ic { width:36px; height:36px; border-radius:18px; background:white; display:flex; align-items:center; justify-content:center; font-size:19px; color:#C2620A; flex-shrink:0; }
+  .banner b { font-size:13px; display:block; }
+  .banner small { font-size:11px; color:#8A5A20; }
+  .banner .go { margin-left:auto; color:#C2620A; font-size:18px; }
+  .vc { display:flex; gap:6px; overflow-x:auto; margin-bottom:12px; padding-bottom:2px; scrollbar-width:none; }
+  .vc div { flex-shrink:0; height:32px; padding:0 13px; display:flex; align-items:center; gap:4px; background:white; border:1px solid var(--border-light); border-radius:16px; font-size:12px; font-weight:700; color:var(--text-light); }
+  .vc div ion-icon { font-size:14px; color:var(--primary); }
+  .vc div.on { background:var(--primary); color:white; border-color:var(--primary); }
+  .vc div.on ion-icon { color:white; }
+
+  /* D. 텍스트 탭 */
+  .vd { display:flex; flex-wrap:wrap; gap:4px 16px; border-bottom:1px solid var(--border-light); margin-bottom:12px; padding-bottom:2px; }
+  .vd div { font-size:13px; font-weight:700; color:var(--text-light); padding:6px 0; border-bottom:2.5px solid transparent; }
+  .vd div.on { color:var(--primary-dark); border-bottom-color:var(--primary); font-weight:800; }
+  .vd div.season { color:#C2620A; }
+</style>
+</head>
+<body>
+  <h1>카테고리 디자인 비교</h1>
+  <div class="sub">모두 같은 7개 카테고리(전체 포함)와 계절 추천을 담았어요. 마음에 드는 안의 이름을 알려 주세요.</div>
+  <div class="grid">
+
+    <div class="opt">
+      <div class="opt-name">지금 (v12)</div>
+      <div class="opt-desc">이모지 칩을 4열 2줄로 배치했어요. 이모지 그림체가 서로 달라 산만해 보일 수 있어요.</div>
+      <div class="phone">
+        <div class="search"><ion-icon name="search"></ion-icon>재료나 레시피 이름으로 찾기</div>
+        <div class="v0">
+          <div class="on">🐾 전체</div><div>🍲 자연식</div><div>🍪 수제간식</div><div>🥣 영양죽</div>
+          <div>🎂 파티푸드</div><div>🏥 건강케어</div><div>🧊 쿨간식</div><div>🍂 가을 추천</div>
+        </div>
+        <div class="feed-title">전체 레시피</div><div class="card"></div>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="opt-name">A. 원형 아이콘 메뉴</div>
+      <div class="opt-desc">배달·쇼핑 앱 첫 화면에서 흔히 쓰는 방식이에요. 아이콘을 앱 색 하나로 통일했어요. 계절 칸만 주황색으로 구분해요. 세로로 조금 더 길어요.</div>
+      <div class="phone">
+        <div class="search"><ion-icon name="search"></ion-icon>재료나 레시피 이름으로 찾기</div>
+        <div class="va">
+          <div class="on"><span class="ic"><ion-icon name="apps-outline"></ion-icon></span>전체</div>
+          <div><span class="ic"><ion-icon name="restaurant-outline"></ion-icon></span>자연식</div>
+          <div><span class="ic"><ion-icon name="nutrition-outline"></ion-icon></span>수제간식</div>
+          <div><span class="ic"><ion-icon name="cafe-outline"></ion-icon></span>영양죽</div>
+          <div><span class="ic"><ion-icon name="gift-outline"></ion-icon></span>파티푸드</div>
+          <div><span class="ic"><ion-icon name="medkit-outline"></ion-icon></span>건강케어</div>
+          <div><span class="ic"><ion-icon name="ice-cream-outline"></ion-icon></span>쿨간식</div>
+          <div class="season"><span class="ic"><ion-icon name="leaf-outline"></ion-icon></span>가을 추천</div>
+        </div>
+        <div class="feed-title">전체 레시피</div><div class="card"></div>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="opt-name">B. 라인 아이콘 둥근 칩</div>
+      <div class="opt-desc">지금 배치와 같지만 테두리를 없애고 아이콘을 선 아이콘으로 바꿨어요. 가장 가볍고 차분해 보여요.</div>
+      <div class="phone">
+        <div class="search"><ion-icon name="search"></ion-icon>재료나 레시피 이름으로 찾기</div>
+        <div class="vb">
+          <div class="on"><ion-icon name="apps-outline"></ion-icon>전체</div>
+          <div><ion-icon name="restaurant-outline"></ion-icon>자연식</div>
+          <div><ion-icon name="nutrition-outline"></ion-icon>수제간식</div>
+          <div><ion-icon name="cafe-outline"></ion-icon>영양죽</div>
+          <div><ion-icon name="gift-outline"></ion-icon>파티푸드</div>
+          <div><ion-icon name="medkit-outline"></ion-icon>건강케어</div>
+          <div><ion-icon name="ice-cream-outline"></ion-icon>쿨간식</div>
+          <div class="season"><ion-icon name="leaf-outline"></ion-icon>가을 추천</div>
+        </div>
+        <div class="feed-title">전체 레시피</div><div class="card"></div>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="opt-name">C. 계절 배너 + 한 줄 칩</div>
+      <div class="opt-desc">계절 추천은 "시기", 나머지는 "음식 종류"라서 나눴어요. 계절은 눈에 띄는 배너로, 카테고리는 한 줄 가로 스크롤로 넣었어요.</div>
+      <div class="phone">
+        <div class="search"><ion-icon name="search"></ion-icon>재료나 레시피 이름으로 찾기</div>
+        <div class="banner"><span class="ic"><ion-icon name="leaf-outline"></ion-icon></span><span><b>가을 추천 레시피</b><small>단호박·고구마로 만든 레시피 3개</small></span><ion-icon class="go" name="chevron-forward"></ion-icon></div>
+        <div class="vc">
+          <div class="on"><ion-icon name="apps-outline"></ion-icon>전체</div>
+          <div><ion-icon name="restaurant-outline"></ion-icon>자연식</div>
+          <div><ion-icon name="nutrition-outline"></ion-icon>수제간식</div>
+          <div><ion-icon name="cafe-outline"></ion-icon>영양죽</div>
+          <div><ion-icon name="gift-outline"></ion-icon>파티푸드</div>
+          <div><ion-icon name="medkit-outline"></ion-icon>건강케어</div>
+          <div><ion-icon name="ice-cream-outline"></ion-icon>쿨간식</div>
+        </div>
+        <div class="feed-title">전체 레시피</div><div class="card"></div>
+      </div>
+    </div>
+
+    <div class="opt">
+      <div class="opt-name">D. 글자 탭</div>
+      <div class="opt-desc">아이콘 없이 글자와 밑줄만 써요. 가장 단순하고 공간을 덜 차지해요. 대신 카테고리라는 느낌이 약해요.</div>
+      <div class="phone">
+        <div class="search"><ion-icon name="search"></ion-icon>재료나 레시피 이름으로 찾기</div>
+        <div class="vd">
+          <div class="on">전체</div><div>자연식</div><div>수제간식</div><div>영양죽</div>
+          <div>파티푸드</div><div>건강케어</div><div>쿨간식</div><div class="season">🍂 가을 추천</div>
+        </div>
+        <div class="feed-title">전체 레시피</div><div class="card"></div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

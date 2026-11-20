@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>탭 구성 비교</title>
+<script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+<style>
+  :root { --primary:#1D5C7A; --primary-light:#E2EEF4; --primary-dark:#123F55; --bg:#F5F8FA; --light-bg:#EEF3F6; --text:#14212B; --text-light:#52616D; --border-light:#DDE5EA; }
+  * { box-sizing:border-box; margin:0; padding:0; font-family:-apple-system, BlinkMacSystemFont, "Pretendard", "Apple SD Gothic Neo", sans-serif; }
+  body { background:#E6EEF3; color:var(--text); padding:16px; overflow-x:hidden; }
+  h1 { font-size:20px; font-weight:800; margin-bottom:4px; }
+  .sub { font-size:13px; color:var(--text-light); margin-bottom:20px; line-height:1.5; }
+  .grid { display:flex; flex-wrap:nowrap; gap:24px; width:max-content; transform-origin:top left; }
+  .opt { width:360px; flex-shrink:0; }
+  .opt-name { font-size:15px; font-weight:800; color:var(--primary-dark); margin-bottom:4px; }
+  .opt-tabs { font-size:12.5px; font-weight:700; margin-bottom:6px; }
+  .pros { font-size:12px; line-height:1.55; color:var(--text-light); margin-bottom:10px; min-height:94px; }
+  .pros b.p { color:#1E6B4F; } .pros b.c { color:#B42318; }
+
+  .phone { position:relative; height:640px; background:var(--bg); border:5px solid #CBD5E1; border-radius:30px; overflow:hidden; display:flex; flex-direction:column; }
+  .hdr { background:white; padding:9px 14px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid var(--border-light); }
+  .logo { display:flex; align-items:center; gap:5px; font-size:16px; font-weight:800; color:var(--primary); }
+  .logo span { width:24px; height:24px; border-radius:7px; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-size:13px; }
+  .pets { display:flex; align-items:center; gap:5px; background:var(--light-bg); border:1px solid var(--border-light); border-radius:20px; padding:3px 8px 3px 4px; font-size:10px; font-weight:800; color:var(--primary-dark); }
+  .pets i { width:22px; height:22px; border-radius:11px; display:block; background:#D8C3A5; }
+  .pets i:nth-child(2) { background:#B98B5E; } .pets i:nth-child(3) { background:#7FA7BF; }
+  .pets i.on { outline:2px solid var(--primary); outline-offset:1px; }
+  .hdr-write { display:flex; align-items:center; gap:3px; font-size:11px; font-weight:800; color:var(--primary); background:var(--primary-light); border-radius:14px; padding:5px 9px; }
+
+  .body { flex:1; padding:12px; overflow:hidden; }
+  .search { background:white; border:1.5px solid var(--border-light); border-radius:11px; padding:8px 11px; font-size:11.5px; color:#8A97A1; margin-bottom:10px; display:flex; gap:6px; align-items:center; }
+  .toggle { background:white; border:1.5px solid var(--border-light); border-radius:11px; padding:8px 11px; font-size:11.5px; font-weight:700; margin-bottom:10px; display:flex; justify-content:space-between; }
+  .toggle i { width:32px; height:18px; border-radius:9px; background:#B8C6CF; display:block; }
+  .cats { display:grid; grid-template-columns:repeat(4,1fr); gap:5px; margin-bottom:12px; }
+  .cats div { height:28px; border-radius:14px; background:var(--light-bg); font-size:10.5px; font-weight:700; color:var(--text-light); display:flex; align-items:center; justify-content:center; white-space:nowrap; letter-spacing:-.3px; }
+  .cats div.on { background:var(--primary); color:white; }
+  .cats div.s { background:#FFF3E3; color:#9A4A06; }
+  .sec { display:flex; justify-content:space-between; align-items:center; font-size:13px; font-weight:800; margin-bottom:8px; }
+  .sec small { font-size:10.5px; color:var(--text-light); font-weight:600; }
+  .write-btn { display:flex; align-items:center; gap:3px; font-size:11px; font-weight:800; color:white; background:var(--primary); border-radius:14px; padding:5px 10px; }
+  .card { background:white; border:1px solid var(--border-light); border-radius:14px; overflow:hidden; margin-bottom:10px; }
+  .card .img { height:96px; background:linear-gradient(135deg,#F3D9B1,#E8B77D); }
+  .card .tx { padding:9px 11px; font-size:12.5px; font-weight:800; }
+  .card .tx span { display:inline-block; font-size:9.5px; font-weight:800; background:#E1F1EA; color:#1E6B4F; padding:2px 6px; border-radius:5px; margin-bottom:4px; }
+
+  .fab { position:absolute; right:12px; bottom:72px; background:var(--primary); color:white; border-radius:22px; padding:8px 13px 8px 10px; font-size:11.5px; font-weight:800; display:flex; align-items:center; gap:5px; box-shadow:0 5px 14px rgba(29,92,122,.4); }
+  .fab.up { bottom:86px; }
+
+  .tabbar { height:58px; background:white; border-top:1px solid var(--border-light); display:flex; justify-content:space-around; align-items:center; position:relative; }
+  .tab { display:flex; flex-direction:column; align-items:center; gap:2px; font-size:10px; font-weight:700; color:var(--text-light); flex:1; }
+  .tab ion-icon { font-size:20px; }
+  .tab.on { color:var(--primary); }
+  .tab.center { position:relative; top:-14px; }
+  .tab.center b { width:50px; height:50px; border-radius:25px; background:var(--primary); color:white; display:flex; align-items:center; justify-content:center; font-size:26px; box-shadow:0 5px 14px rgba(29,92,122,.4); border:4px solid white; }
+  .tab.center span { margin-top:-2px; }
+  .badge-new { position:absolute; top:-6px; left:50%; margin-left:4px; background:#B42318; color:white; font-size:8.5px; font-weight:800; border-radius:6px; padding:1px 4px; }
+</style>
+</head>
+<body>
+  <h1>아래 탭 구성 비교</h1>
+  <div class="sub">세 안 모두 홈 화면은 같아요(검색창, 맞춤 보기, 주재료 카테고리, 레시피 목록, AI 멍셰프 버튼). 다른 건 아래 탭과 "레시피 등록"을 어디에 두느냐예요.</div>
+  <div class="wrap">
+  <div class="grid">
+
+    <!-- 1안 -->
+    <div class="opt">
+      <div class="opt-name">1안. 등록 탭형 (지금 v12)</div>
+      <div class="opt-tabs">홈 · 먹었어요 · 레시피 등록 · 내 반려견</div>
+      <div class="pros"><b class="p">좋은 점</b> 레시피 등록이 항상 보여서 글이 많이 올라와요. 지금 목업과 같아서 바꿀 게 없어요.<br>
+        <b class="c">아쉬운 점</b> 지금 앱에 있는 <b>찜</b> 탭이 사라져요. 등록은 자주 쓰지 않는데 탭 한 칸을 차지해요.</div>
+      <div class="phone">
+        <div class="hdr"><div class="logo"><span><ion-icon name="paw"></ion-icon></span>멍슐랭</div><div class="pets"><i class="on"></i><i></i><i></i>초코 (8kg)</div></div>
+        <div class="body">
+          <div class="search"><ion-icon name="search"></ion-icon>재료나 레시피 이름으로 찾기</div>
+          <div class="toggle">🐶 초코에게 맞는 레시피만 보기<i></i></div>
+          <div class="cats"><div class="on">전체</div><div>닭·오리</div><div>소·돼지·양</div><div>생선</div><div>채소·과일</div><div>곡물·고구마</div><div>달걀·유제품</div><div class="s">가을 추천</div></div>
+          <div class="sec">전체 레시피 <small>8개</small></div>
+          <div class="card"><div class="img"></div><div class="tx"><span>✓ 초코에게 맞아요</span><br>소고기 브로콜리 화식</div></div>
+          <div class="card"><div class="img"></div></div>
+        </div>
+        <div class="fab"><ion-icon name="chatbubble-ellipses"></ion-icon>AI 멍셰프</div>
+        <div class="tabbar">
+          <div class="tab on"><ion-icon name="home"></ion-icon>홈</div>
+          <div class="tab"><ion-icon name="medkit"></ion-icon>먹었어요</div>
+          <div class="tab"><ion-icon name="create"></ion-icon>레시피 등록</div>
+          <div class="tab"><ion-icon name="paw"></ion-icon>내 반려견</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2안 -->
+    <div class="opt">
+      <div class="opt-name">2안. 찜 탭형 + 홈에 쓰기 버튼 (추천)</div>
+      <div class="opt-tabs">홈 · 먹었어요 · 찜 · 내 반려견 / 등록은 목록 위 "레시피 쓰기"</div>
+      <div class="pros"><b class="p">좋은 점</b> 이미 만들어 둔 찜 기능을 살려요. 자주 쓰는 기능만 탭에 있어서 깔끔해요. 쓰기 버튼은 목록 바로 위라 찾기 쉬워요.<br>
+        <b class="c">아쉬운 점</b> 홈이 아닌 화면에서는 등록 버튼이 안 보여요.</div>
+      <div class="phone">
+        <div class="hdr"><div class="logo"><span><ion-icon name="paw"></ion-icon></span>멍슐랭</div><div class="pets"><i class="on"></i><i></i><i></i>초코 (8kg)</div></div>
+        <div class="body">
+          <div class="search"><ion-icon name="search"></ion-icon>재료나 레시피 이름으로 찾기</div>
+          <div class="toggle">🐶 초코에게 맞는 레시피만 보기<i></i></div>
+          <div class="cats"><div class="on">전체</div><div>닭·오리</div><div>소·돼지·양</div><div>생선</div><div>채소·과일</div><div>곡물·고구마</div><div>달걀·유제품</div><div class="s">가을 추천</div></div>
+          <div class="sec">전체 레시피 <span class="write-btn"><ion-icon name="create-outline"></ion-icon>레시피 쓰기</span></div>
+          <div class="card"><div class="img"></div><div class="tx"><span>✓ 초코에게 맞아요</span><br>소고기 브로콜리 화식</div></div>
+          <div class="card"><div class="img"></div></div>
+        </div>
+        <div class="fab"><ion-icon name="chatbubble-ellipses"></ion-icon>AI 멍셰프</div>
+        <div class="tabbar">
+          <div class="tab on"><ion-icon name="home"></ion-icon>홈</div>
+          <div class="tab"><ion-icon name="medkit"></ion-icon>먹었어요</div>
+          <div class="tab"><ion-icon name="heart"></ion-icon>찜</div>
+          <div class="tab"><ion-icon name="paw"></ion-icon>내 반려견</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3안 -->
+    <div class="opt">
+      <div class="opt-name">3안. 5칸 + 가운데 등록 버튼</div>
+      <div class="opt-tabs">홈 · 찜 · (+) 등록 · 먹었어요 · 내 반려견</div>
+      <div class="pros"><b class="p">좋은 점</b> 찜과 등록을 모두 탭에 둬요. SNS 앱처럼 가운데 + 버튼이 눈에 띄어서 글쓰기를 유도해요.<br>
+        <b class="c">아쉬운 점</b> 탭이 5칸이라 글자가 작아져요. 가운데 버튼과 AI 멍셰프 버튼이 둘 다 떠 있어서 아래쪽이 복잡해 보여요.</div>
+      <div class="phone">
+        <div class="hdr"><div class="logo"><span><ion-icon name="paw"></ion-icon></span>멍슐랭</div><div class="pets"><i class="on"></i><i></i><i></i>초코 (8kg)</div></div>
+        <div class="body">
+          <div class="search"><ion-icon name="search"></ion-icon>재료나 레시피 이름으로 찾기</div>
+          <div class="toggle">🐶 초코에게 맞는 레시피만 보기<i></i></div>
+          <div class="cats"><div class="on">전체</div><div>닭·오리</div><div>소·돼지·양</div><div>생선</div><div>채소·과일</div><div>곡물·고구마</div><div>달걀·유제품</div><div class="s">가을 추천</div></div>
+          <div class="sec">전체 레시피 <small>8개</small></div>
+          <div class="card"><div class="img"></div><div class="tx"><span>✓ 초코에게 맞아요</span><br>소고기 브로콜리 화식</div></div>
+          <div class="card"><div class="img"></div></div>
+        </div>
+        <div class="fab up"><ion-icon name="chatbubble-ellipses"></ion-icon>AI 멍셰프</div>
+        <div class="tabbar">
+          <div class="tab on"><ion-icon name="home"></ion-icon>홈</div>
+          <div class="tab"><ion-icon name="heart"></ion-icon>찜</div>
+          <div class="tab center"><b><ion-icon name="add"></ion-icon></b><span>등록</span></div>
+          <div class="tab"><ion-icon name="medkit"></ion-icon>먹었어요</div>
+          <div class="tab"><ion-icon name="paw"></ion-icon>내 반려견</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+<script>
+  // 창 크기에 맞춰 세 안이 한 화면에 모두 보이도록 줄인다
+  function fit() {
+    const g = document.querySelector('.grid');
+    g.style.transform = 'none'; document.querySelector('.wrap').style.height = 'auto';
+    const top = g.getBoundingClientRect().top + window.scrollY;
+    const k = Math.min(1, (window.innerWidth - 32) / g.offsetWidth, (window.innerHeight - top - 16) / g.offsetHeight);
+    g.style.transform = `scale(${k})`;
+    document.querySelector('.wrap').style.height = g.offsetHeight * k + 'px';
+  }
+  window.addEventListener('resize', fit); window.addEventListener('load', fit); fit();
+</script>
+</body>
+</html>
