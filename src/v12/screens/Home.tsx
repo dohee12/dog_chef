@@ -24,7 +24,7 @@ export function RecipeVisual({ r, height }: { r: Recipe; height: number }) {
   return (
     <View style={{ height, alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: "#D8E7EF" }}>
       <Icon name={c[1]} size={44} color={C.primary} />
-      <Txt style={{ fontSize: 12, fontWeight: "700", color: C.textLight }}>{c[2]} 레시피 · 사진 예시 없음</Txt>
+      <Txt style={{ fontSize: 12, fontWeight: "700", color: C.textLight }}>{c[2]}</Txt>
     </View>
   );
 }
@@ -111,7 +111,7 @@ export function HomeScreen({ onOpen }: { onOpen: (id: number) => void }) {
           const bg = on ? (season ? "#A4520A" : C.primary) : season ? "#FFF3E3" : C.lightBg;
           const fg = on ? "white" : season ? "#9A4A06" : C.textLight;
           return (
-            <Pressable key={k} onPress={() => { state.cat = k; bump(); }} style={[s.catChip, { backgroundColor: bg }]}>
+            <Pressable key={k} onPress={() => { state.cat = k; bump(); }} style={[s.catChip, { backgroundColor: bg }, state.bigText && { width: "31%" }]}>
               <Icon name={ic} size={15} color={on ? "white" : season ? "#C2620A" : C.primary} />
               <Txt style={{ fontSize: 12, fontWeight: "700", color: fg, letterSpacing: -0.3 }} numberOfLines={1}>
                 {lb}

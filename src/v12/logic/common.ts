@@ -59,7 +59,7 @@ export function srcShort(id: string) {
 }
 export const TIER: Record<string, string> = {
   A: "믿을 만한 연구·기준 (논문, Merck 수의 매뉴얼, 국가 영양표준)",
-  B: "공공·전문 기관 자료 (수의 독성센터, 정부 기관)",
+  B: "전문 기관·병원 자료 (수의 독성센터, 정부 기관, 동물병원 데이터)",
   C: "참고 기사 (일반 기사)",
 };
 // 출처 목록을 출처별로 묶고 인용문을 모은다

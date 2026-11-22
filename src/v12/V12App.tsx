@@ -2,7 +2,7 @@
 // 목업처럼 전역 값을 직접 바꾸고 다시 그리므로 React Compiler 자동 메모를 끈다.
 // 멍슐랭 v12 목업을 React Native 로 옮긴 앱 틀: 웹 소개 칸, 머리, 탭 화면, AI 멍셰프 버튼, 겹쳐 뜨는 화면, 알림, 아래 탭
 import React from "react";
-import { Platform, Pressable, ScrollView, StyleSheet, useWindowDimensions, View } from "react-native";
+import { Animated, Platform, Pressable, ScrollView, StyleSheet, useWindowDimensions, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
 import { SEASON } from "./logic/common";
 import { AddScreen } from "./screens/Add";
@@ -24,9 +24,11 @@ const TABS: [Tab, string, string][] = [
 
 function Header() {
   const p = pet();
+  // 좁은 폰(360px 등, 380px 미만)에서는 머리 글자가 버튼과 붙지 않게 몸무게를 뺀다.
+  const narrow = useWindowDimensions().width < 380;
   return (
     <View style={s.header}>
-      <Pressable onPress={() => showTab("home")} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+      <Pressable onPress={() => showTab("home")} style={{ flexDirection: "row", alignItems: "center", gap: 6, flexShrink: 0, marginRight: 8 }}>
         <View style={s.logoIcon}><Icon name="paw" size={15} color="white" /></View>
         <Txt style={s.logoTitle} numberOfLines={1}>멍슐랭</Txt>
       </Pressable>
@@ -49,7 +51,7 @@ function Header() {
               })
             : null}
           <Txt style={{ fontSize: 11, fontWeight: "800", color: C.primaryDark, marginLeft: 2 }} numberOfLines={1}>
-            {p.name} ({p.weight}kg)
+            {narrow ? p.name : `${p.name} (${p.weight}kg)`}
           </Txt>
         </View>
       </View>
@@ -80,11 +82,55 @@ function TabBar() {
   );
 }
 
+// 떠 있는 AI 멍셰프 버튼. 숨길 때는 아래로 살짝 내려가며 사라지고, 눌리지 않게 한다.
+function ChefFab({ hidden }: { hidden: boolean }) {
+  const anim = React.useRef(new Animated.Value(1)).current;
+  React.useEffect(() => {
+    Animated.timing(anim, { toValue: hidden ? 0 : 1, duration: 180, useNativeDriver: Platform.OS !== "web" }).start();
+  }, [hidden, anim]);
+  const translateY = anim.interpolate({ inputRange: [0, 1], outputRange: [24, 0] });
+  return (
+    <Animated.View style={[s.fabWrap, { opacity: anim, transform: [{ translateY }], pointerEvents: hidden ? "none" : "auto" }]} aria-hidden={hidden}>
+      <Pressable onPress={() => { state.chatOpen = true; bump(); }} style={s.fab} accessibilityLabel="AI 멍셰프">
+        <Icon name="chatbubble-ellipses" size={20} color="white" />
+        <Txt style={{ fontSize: 13.5, fontWeight: "800", color: "white", letterSpacing: -0.3 }}>AI 멍셰프</Txt>
+      </Pressable>
+    </Animated.View>
+  );
+}
+
+// 아래로 스크롤하는 동안 버튼을 숨기고, 위로 올리거나 스크롤을 멈추면 다시 보인다.
+// 버튼이 그 자리에 온 '재료 넣기(+)'·찜 하트 같은 버튼을 가리지 않게 하려는 것.
+const FAB_SHOW_AFTER_IDLE = 700;
+function useFabHiddenOnScroll(tab: Tab) {
+  const [hidden, setHidden] = React.useState(false);
+  const lastY = React.useRef(0);
+  const idle = React.useRef<ReturnType<typeof setTimeout> | null>(null);
+  React.useEffect(() => {
+    setHidden(false);
+    lastY.current = 0;
+  }, [tab]);
+  React.useEffect(() => () => { if (idle.current) clearTimeout(idle.current); }, []);
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const y = e.nativeEvent.contentOffset.y;
+    const dy = y - lastY.current;
+    lastY.current = y;
+    if (dy > 4 && y > 8) setHidden(true);
+    else if (dy < -4) setHidden(false);
+    if (idle.current) clearTimeout(idle.current);
+    idle.current = setTimeout(() => setHidden(false), FAB_SHOW_AFTER_IDLE);
+  };
+  return { hidden, onScroll };
+}
+
 function Frame() {
   useStore();
   const [wiz, setWiz] = React.useState(false);
+  const fab = useFabHiddenOnScroll(state.tab);
   const scale = state.bigText ? 1.18 : 1;
   const open = (id: number) => { state.detailId = id; bump(); };
+  // 먹었어요(계산)는 자체 화면이 있고, 등록은 입력 칸·버튼이 화면 오른쪽 아래까지 차서 버튼을 두지 않는다.
+  const showFab = state.tab !== "calc" && state.tab !== "add";
   return (
     <View style={{ flex: 1, backgroundColor: C.bg }}>
       <Header />
@@ -93,17 +139,12 @@ function Frame() {
           {state.tab === "calc" ? (
             <CalcScreen />
           ) : (
-            <ScrollView key={state.tab} style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 96 }} keyboardShouldPersistTaps="handled">
+            <ScrollView key={state.tab} style={{ flex: 1 }} contentContainerStyle={{ padding: 16, paddingBottom: 96 }} keyboardShouldPersistTaps="handled" onScroll={fab.onScroll} scrollEventThrottle={16}>
               {state.tab === "home" ? <HomeScreen onOpen={open} /> : state.tab === "fav" ? <FavScreen onOpen={open} /> : state.tab === "add" ? <AddScreen /> : <PetScreen onWizard={() => setWiz(true)} />}
             </ScrollView>
           )}
         </View>
-        {state.tab !== "calc" ? (
-          <Pressable onPress={() => { state.chatOpen = true; bump(); }} style={s.fab} accessibilityLabel="AI 멍셰프">
-            <Icon name="chatbubble-ellipses" size={20} color="white" />
-            <Txt style={{ fontSize: 13.5, fontWeight: "800", color: "white", letterSpacing: -0.3 }}>AI 멍셰프</Txt>
-          </Pressable>
-        ) : null}
+        {showFab ? <ChefFab hidden={fab.hidden} /> : null}
         {state.chatOpen ? <ChatModal /> : null}
         {state.detailId !== null ? <DetailOverlay id={state.detailId} onClose={() => { state.detailId = null; bump(); }} /> : null}
         {wiz ? <Wizard onClose={() => setWiz(false)} /> : null}
@@ -121,6 +162,10 @@ function Frame() {
     </View>
   );
 }
+
+// 웹 주소에 ?demo 를 붙였을 때만 보이는 시연용 화면: 폰 모양 틀 + 왼쪽 개발 안내 칸.
+// 고객이 여는 기본 화면에는 보이지 않는다.
+const DEMO = Platform.OS === "web" && typeof window !== "undefined" && /[?&]demo(=|&|$)/.test(window.location.search);
 
 // PC 웹 왼쪽 소개 칸 (목업 webshell-side)
 function Side() {
@@ -179,11 +224,20 @@ function Shell() {
   useStore();
   const { width, height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const framed = Platform.OS === "web" && width > 520;
-  if (!framed)
+  const wide = Platform.OS === "web" && width > 520;
+  if (!wide)
     return (
       <View style={{ flex: 1, backgroundColor: C.bg, paddingTop: insets.top, paddingBottom: insets.bottom }}>
         <Frame />
+      </View>
+    );
+  // 넓은 화면: 폰 틀 없이 가운데에 앱 너비만큼 세로로 꽉 채운다.
+  if (!DEMO)
+    return (
+      <View style={{ flex: 1, backgroundColor: "#E6EEF3", alignItems: "center" }}>
+        <View style={s.column}>
+          <Frame />
+        </View>
       </View>
     );
   return (
@@ -205,6 +259,7 @@ export default function V12App() {
 }
 
 const s = StyleSheet.create({
+  column: { flex: 1, width: "100%", maxWidth: 480, backgroundColor: C.bg, borderLeftWidth: 1, borderRightWidth: 1, borderColor: C.border },
   frame: { width: "100%", maxWidth: 480, backgroundColor: C.bg, borderRadius: 36, borderWidth: 6, borderColor: "#CBD5E1", overflow: "hidden", ...shadow(20, 40, C.primaryDark, 0.18, 8) },
   header: { backgroundColor: "white", paddingVertical: 10, paddingHorizontal: 18, flexDirection: "row", justifyContent: "space-between", alignItems: "center", borderBottomWidth: 1, borderBottomColor: C.border },
   logoIcon: { width: 28, height: 28, backgroundColor: C.primary, borderRadius: 8, alignItems: "center", justifyContent: "center" },
@@ -215,7 +270,8 @@ const s = StyleSheet.create({
   tabbar: { height: 64, backgroundColor: "white", borderTopWidth: 1, borderTopColor: C.border, flexDirection: "row", justifyContent: "space-around", alignItems: "center", paddingBottom: 4, zIndex: 10 },
   tab: { flex: 1, alignItems: "center", gap: 3 },
   center: { width: 52, height: 52, borderRadius: 26, backgroundColor: C.primary, alignItems: "center", justifyContent: "center", borderWidth: 4, borderColor: "white", ...shadow(5, 14, C.primary, 0.4, 6) },
-  fab: { position: "absolute", bottom: 90, right: 18, backgroundColor: C.primary, paddingVertical: 10, paddingLeft: 12, paddingRight: 16, borderRadius: 28, flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 2, borderColor: "rgba(255,255,255,0.25)", zIndex: 50, ...shadow(6, 18, C.primary, 0.45, 8) },
+  fabWrap: { position: "absolute", bottom: 90, right: 18, zIndex: 50 },
+  fab: { backgroundColor: C.primary, paddingVertical: 10, paddingLeft: 12, paddingRight: 16, borderRadius: 28, flexDirection: "row", alignItems: "center", gap: 8, borderWidth: 2, borderColor: "rgba(255,255,255,0.25)", zIndex: 50, ...shadow(6, 18, C.primary, 0.45, 8) },
   toastWrap: { position: "absolute", bottom: 90, left: 0, right: 0, alignItems: "center", zIndex: 200 },
   toast: { maxWidth: "88%", backgroundColor: "#14212B", paddingVertical: 11, paddingHorizontal: 16, borderRadius: 12, zIndex: 200 },
   sideMark: { width: 44, height: 44, backgroundColor: C.primary, borderRadius: 12, alignItems: "center", justifyContent: "center" },

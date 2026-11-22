@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { bump, D, J, pet, SEED, showToast, state } from "../store";
 import { CALC, computeCalc, LTITLE, openCalcWith, type Mode } from "./calc";
+import { josa } from "./josa";
 
 // 글 조각: **굵게**, 줄바꿈은 \n
 export type ChatNode =
@@ -25,7 +26,11 @@ export const chatMsgs: ChatMsg[] = [
   },
 ];
 
-const callAction = (): ChatNode => ({ t: "action", label: "📞 병원 전화", act: () => showToast("목업: 가까운 24시 동물병원 전화 연결") });
+const callAction = (): ChatNode => ({ t: "action", label: "📞 병원 전화", act: () => showToast("전화 연결은 준비 중이에요. 가까운 동물병원에 직접 전화해 주세요.") });
+// 재료가 아닌 질문(산책·목욕 등)
+const OFF_TOPIC = /산책|목욕|미용|훈련|접종|중성화|입양|분양|몇\s*분|몇\s*시간|운동|놀아|놀이|잠을|짖어|짖는/;
+// 문장 비교용: 띄어쓰기·문장부호·'와/과' 차이를 무시한다.
+const norm = (x: string) => x.replace(/[\s.,!?·]|와|과/g, "");
 const COND_WORDS: Record<string, string[]> = {
   ckd: ["신장", "콩팥"], pancreatitis: ["췌장"], diabetes: ["당뇨"], "calcium-oxalate-stones": ["수산칼슘"],
   "urate-stones": ["요산"], "cystine-stones": ["시스틴"], "copper-hepatopathy": ["구리", "간질환"],
@@ -73,6 +78,11 @@ export function answer(q: string): ChatNode[] {
       out.push(callAction(), { t: "badge", s: "확인 안 됨 · 근거 없음" });
       return out;
     }
+    // 재료가 아닌 질문에는 "재료를 빼 주세요" 대신 무엇을 물어볼 수 있는지 알려 준다.
+    if (!qConds.length && OFF_TOPIC.test(q)) {
+      text("🐾 **저는 음식 재료가 괜찮은지만 알려 드릴 수 있어요.**\n재료 이름으로 물어봐 주세요. (예: 고구마 줘도 돼?, 포도 1알 먹었어)");
+      return out;
+    }
     const condTxt = qConds
       .map((id) => D.health_conditions.find((x: any) => x.id === id))
       .map((hc: any) => `\n🩺 ${hc.label.split(" (")[0]}: ${hc.message}`)
@@ -96,7 +106,7 @@ export function answer(q: string): ChatNode[] {
           ? { food: r.id, mode: "item", item: null }
           : { food: r.id, sub, mode: amt.mode, count: amt.mode === "count" ? n : 0, grams: amt.mode === "gram" ? n : 0, unitW: null, cacao: cac ? +cac[1] : null };
         const res = computeCalc(c, p);
-        if (res.level > 0) out.push({ t: "calc", lv: res.level, s: `🧮 ${p.name}(${p.weight}kg) 기준 ${res.num || ""} → **${LTITLE[res.level]}**\n${res.band}` });
+        if (res.level > 0) out.push({ t: "calc", lv: res.level, s: `🧮 ${p.name}(${p.weight}kg) 기준 ${res.num ? res.num + " " : ""}→ **${LTITLE[res.level]}**\n${res.band}` });
         else if (c.mode === "item") out.push({ t: "calc", lv: 1, s: "🧮 계산기에서 무엇을 먹었는지 그림으로 고르면 바로 계산해요." });
         else if (res.need || res.level === -2) out.push({ t: "calc", lv: 1, s: `🧮 ${res.need || res.band}. 계산기에서 마저 넣어 주세요.` });
         const pk = p.key;
@@ -112,8 +122,14 @@ export function answer(q: string): ChatNode[] {
   else if (it.level === "caution") text(`⚠️ **${r.label}: 주의가 필요해요.**\n${r.reason}`);
   else text(`✓ **${r.label}: 괜찮아요** (조건을 지켜 주세요)\n조건: ${r.conditions || ""}`);
   ev.push(...(r.evidence || []));
-  for (const pt of it.parts) { text(`✂️ **${pt.part}**: ${pt.guide}`); ev.push(...(pt.evidence || [])); }
-  for (const b of j.blocks.filter((b: any) => b.kind === "allergy")) text(`🚫 **${p.name}는 ${b.text}가 있어서 안 돼요.**`);
+  for (const pt of it.parts) {
+    // 손질 안내가 위 설명과 같은 문장을 되풀이하면 그 문장은 뺀다.
+    const said = norm(r.reason || r.conditions || "");
+    const rest = String(pt.guide || "").split(/(?<=[.!?])\s+/).filter((x) => x && !said.includes(norm(x)));
+    text(rest.length ? `✂️ **${pt.part}**: ${rest.join(" ")}` : `✂️ **${pt.part}**: 빼고 주세요.`);
+    ev.push(...(pt.evidence || []));
+  }
+  for (const b of j.blocks.filter((b: any) => b.kind === "allergy")) text(`🚫 **${josa(p.name, "은/는")} ${josa(b.text, "이/가")} 있어서 안 돼요.**`);
   for (const b of j.blocks.filter((b: any) => b.kind === "breed")) { text(`🐕 ${p.breed}: ${b.text}`); ev.push(...(b.src.evidence || [])); }
   for (const w of j.warns.filter((w: any) => ["cross", "condition", "general", "lactose"].includes(w.kind))) {
     text(`${w.kind === "cross" ? "🔁" : "🩺"} ${w.text}`);
@@ -121,7 +137,7 @@ export function answer(q: string): ChatNode[] {
   }
   const unreg = qConds.filter((id) => !(p.conditions || []).includes(id));
   if (unreg.length) out.push({ t: "note", s: `💡 ${p.name}의 건강 상태에 등록하면 모든 레시피에 반영돼요.` });
-  if (/몇|얼마나|급여량/.test(q)) text("\n📏 하루 급여량은 아직 근거 데이터에 없어요 (근거 없음). 영양 DB를 연결하면 체중별로 계산해 드릴 예정이에요.");
+  if (/몇|얼마나|급여량/.test(q)) text("\n📏 하루 급여량은 근거 자료가 부족해 아직 안내하지 않아요 (근거 없음). 몸무게·활동량에 맞는 양은 동물병원에 물어봐 주세요.");
   if (!ate && it.level === "danger" && CALC[r.id]) {
     const pk = p.key, gs = guessSub(r.id, q);
     out.push({ t: "action", label: "🧮 먹었다면: 먹은 양으로 위험도 계산", act: () => openCalcWith(r.id, "gram", 0, pk, gs) });

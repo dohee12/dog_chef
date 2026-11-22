@@ -5,6 +5,7 @@
 import React, { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { labelOf, STATUS_NAME } from "../logic/common";
+import { josa } from "../logic/josa";
 import { bump, D, goStatus, J, pet, SEED, showToast, state, switchPet, type Pet, type Status } from "../store";
 import { Avatar, Bold, C, Fold, Icon, Lvl, SrcChips, Txt } from "../ui/base";
 import { s as ds } from "./Detail";
@@ -99,7 +100,7 @@ export function PetScreen({ onWizard }: { onWizard: () => void }) {
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5, marginBottom: 6 }}>
               {al.map((x) => <Lvl key={x} kind="no">{x} 알레르기</Lvl>)}
             </View>
-            <Txt style={s.text} lh={1.55}>{al.join(", ")}가 든 레시피는 &quot;안 돼요&quot;로 표시하고, 맞춤 보기에서 숨겨요.</Txt>
+            <Txt style={s.text} lh={1.55}>{josa(al.join(", "), "이/가")} 든 레시피는 &quot;안 돼요&quot;로 표시하고, 맞춤 보기에서 숨겨요.</Txt>
             {cross.map((c: any, i: number) => <Txt key={i} style={s.text} lh={1.55}>🔁 {c.message}</Txt>)}
             {cross.length ? <SrcChips ev={cross.flatMap((c: any) => c.evidence || [])} /> : null}
           </>
@@ -137,7 +138,7 @@ export function PetScreen({ onWizard }: { onWizard: () => void }) {
           style={[s.box, { backgroundColor: "#FFFBF3", borderColor: "#F1D58F" }]}
           summary={(o) => (
             <View style={[s.boxHRow, { marginBottom: o ? 8 : 0, minHeight: 28 }]}>
-              <Txt style={[s.boxH, { marginBottom: 0, flex: 1 }]}>🐕 {p.breed}라 알아 두세요</Txt>
+              <Txt style={[s.boxH, { marginBottom: 0, flex: 1 }]}>🐕 {josa(p.breed, "이라/라")} 알아 두세요</Txt>
               <Txt style={{ fontSize: 12.5, fontWeight: "700", color: C.textLight }}>{risks.length + bs.length}개 {o ? "▴" : "▾"}</Txt>
             </View>
           )}
@@ -169,7 +170,7 @@ function AllergyChips({ p, onToggle }: { p: Pet; onToggle: (id: string) => void 
           {a.label}<Txt style={{ fontSize: 10, opacity: 0.75 }}> {a.pct}%</Txt>
         </ChipToggle>
       ))}
-      <ChipToggle big on={false} onPress={() => showToast("목업: 목록에 없는 알레르기 직접 입력")}>+ 직접 입력</ChipToggle>
+      <ChipToggle big on={false} onPress={() => showToast("목록에 없는 알레르기 직접 입력은 준비 중이에요.")}>+ 직접 입력</ChipToggle>
     </View>
   );
 }
@@ -277,12 +278,21 @@ export function Wizard({ onClose }: { onClose: () => void }) {
   const [p, setP] = useState<WizPet>(() => ({ key: "new" + Date.now(), name: "", breed: "", age: "", weight: "", gender: "", allergies: [], conditions: [], lactose_sensitive: false, img: null }));
   const S = ["기본 정보", "알레르기", "건강 상태", "확인"];
   const nm = p.name || "우리 아이";
-  const up = (o: Partial<WizPet>) => setP({ ...p, ...o });
+  // 1단계 칸별 오류. 토스트는 금방 사라지므로, 고칠 때까지 칸 아래에 남겨 둔다.
+  const [errs, setErrs] = useState<{ name?: string; age?: string; weight?: string }>({});
+  const up = (o: Partial<WizPet>) => {
+    setP({ ...p, ...o });
+    const changed = Object.keys(o).filter((k) => k in errs);
+    if (changed.length) setErrs((e) => { const n = { ...e }; changed.forEach((k) => delete (n as any)[k]); return n; });
+  };
   const tog = (f: "allergies" | "conditions", id: string) => up({ [f]: p[f].includes(id) ? p[f].filter((x) => x !== id) : [...p[f], id] } as any);
   const back = () => (step === 0 ? onClose() : setStep(step - 1));
   const next = (skip?: boolean) => {
     if (step === 0) {
-      const err = validField("name", p.name) || validField("weight", p.weight) || validField("age", p.age);
+      const fe = { name: validField("name", p.name), age: validField("age", p.age), weight: validField("weight", p.weight) };
+      const shown = Object.fromEntries(Object.entries(fe).filter(([, v]) => v));
+      setErrs(shown);
+      const err = fe.name || fe.weight || fe.age;
       if (err) { showToast(skip ? "이름·나이·몸무게는 건너뛸 수 없어요. " + err : err); return; }
     }
     if (step < 3) { setStep(step + 1); return; }
@@ -312,25 +322,28 @@ export function Wizard({ onClose }: { onClose: () => void }) {
           <View>
             <Txt style={s.wizQ} lh={1.35}>어떤 아이인가요?</Txt>
             <Txt style={fs.label}>이름</Txt>
-            <TextInput style={fs.input} placeholder="예: 초코" placeholderTextColor="#8A97A1" value={p.name} onChangeText={(v) => up({ name: v })} />
+            <TextInput style={[fs.input, errs.name ? s.inputErr : null]} placeholder="예: 초코" placeholderTextColor="#8A97A1" value={p.name} onChangeText={(v) => up({ name: v })} aria-invalid={!!errs.name} />
+            {errs.name ? <Txt style={s.fieldErr} lh={1.4}>{errs.name}</Txt> : null}
             <Txt style={[fs.label, { marginTop: 10 }]}>품종</Txt>
             <TextInput style={fs.input} placeholder="예: 말티즈, 진돗개" placeholderTextColor="#8A97A1" value={p.breed} onChangeText={(v) => up({ breed: v })} />
             <View style={{ flexDirection: "row", gap: 12, marginTop: 10 }}>
               <View style={{ flex: 1 }}>
                 <Txt style={fs.label}>나이</Txt>
-                <TextInput style={fs.input} keyboardType="number-pad" placeholder="예: 3" placeholderTextColor="#8A97A1" value={String(p.age)} onChangeText={(v) => up({ age: v })} />
+                <TextInput style={[fs.input, errs.age ? s.inputErr : null]} keyboardType="number-pad" placeholder="예: 3" placeholderTextColor="#8A97A1" value={String(p.age)} onChangeText={(v) => up({ age: v })} aria-invalid={!!errs.age} />
                 <Txt style={s.unit}>살</Txt>
+                {errs.age ? <Txt style={s.fieldErr} lh={1.4}>{errs.age}</Txt> : null}
               </View>
               <View style={{ flex: 1 }}>
                 <Txt style={fs.label}>몸무게</Txt>
-                <TextInput style={fs.input} keyboardType="decimal-pad" placeholder="예: 4.5" placeholderTextColor="#8A97A1" value={String(p.weight)} onChangeText={(v) => up({ weight: v })} />
+                <TextInput style={[fs.input, errs.weight ? s.inputErr : null]} keyboardType="decimal-pad" placeholder="예: 4.5" placeholderTextColor="#8A97A1" value={String(p.weight)} onChangeText={(v) => up({ weight: v })} aria-invalid={!!errs.weight} />
                 <Txt style={s.unit}>kg</Txt>
+                {errs.weight ? <Txt style={s.fieldErr} lh={1.4}>{errs.weight}</Txt> : null}
               </View>
             </View>
           </View>
         ) : step === 1 ? (
           <View>
-            <Txt style={s.wizQ} lh={1.35}>{nm}가 알레르기 진단을 받은 음식이 있나요?</Txt>
+            <Txt style={s.wizQ} lh={1.35}>{josa(nm, "이/가")} 알레르기 진단을 받은 음식이 있나요?</Txt>
             <Txt style={fs.ppNote} lh={1.5}>많이 보고된 순서예요. 없으면 &quot;다음&quot;을 눌러 주세요.</Txt>
             <View style={s.chipWrap}>
               {D.allergens.items.map((a: any) => (
@@ -396,6 +409,8 @@ const s = StyleSheet.create({
   sheetClose: { width: "100%", marginTop: 8, padding: 11, borderRadius: 10, backgroundColor: C.lightBg, alignItems: "center", justifyContent: "center" },
   wizQ: { fontSize: 18, fontWeight: "900", marginBottom: 8 },
   unit: { position: "absolute", right: 14, top: 38, color: C.textLight, fontSize: 13, fontWeight: "600" },
+  inputErr: { borderColor: C.danger, backgroundColor: C.dangerBg },
+  fieldErr: { color: C.danger, fontSize: 12.5, fontWeight: "700", marginTop: 5 },
   wizFoot: { flexDirection: "row", gap: 8, paddingTop: 10, paddingHorizontal: 16, paddingBottom: 16, borderTopWidth: 1, borderTopColor: C.border, backgroundColor: "white" },
   wizBtn: { flex: 1, minHeight: 48, borderRadius: 12, backgroundColor: C.primary, alignItems: "center", justifyContent: "center" },
 });

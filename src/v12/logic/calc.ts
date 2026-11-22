@@ -2,6 +2,7 @@
 // 독성 수치는 근거 데이터(doses)와 Merck 초콜릿 표에서 가져온다. 근거 없는 기본값은 채우지 않는다.
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { bump, D, J, pet, showToast, state, type Pet } from "../store";
+import { josa } from "./josa";
 
 export const tox = (id: string) => D.toxic_foods.find((t: any) => t.id === id);
 
@@ -246,7 +247,7 @@ export function computeCalc(c: Partial<CalcState>, p: any): CalcResult {
 function addBreed(r: CalcResult, p: any) {
   const bs = D.breed_sensitivities.find((b: any) => b.toxic_id === "allium" && J.breedMatch(b.breeds_ko, p.breed));
   if (bs) {
-    if (r.level < 2) { r.level = 2; r.band = `${p.breed}는 양파에 더 약한 품종이에요. 바로 동물병원에 가세요.`; }
+    if (r.level < 2) { r.level = 2; r.band = `${josa(p.breed, "은/는")} 양파에 더 약한 품종이에요. 바로 동물병원에 가세요.`; }
     r.breed = `${p.breed}: ${bs.message}`;
   }
   return r;

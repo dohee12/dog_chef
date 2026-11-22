@@ -32,7 +32,7 @@ export function AddScreen() {
   const submit = () => {
     if (!title.trim()) { showToast("레시피 제목을 넣어 주세요."); return; }
     if (!ings.length) { showToast("재료를 하나 이상 넣어 주세요."); return; }
-    showToast(photo ? "목업: 사진과 함께 레시피를 등록했어요." : "목업: 레시피를 등록했어요. 사진은 대표 재료 그림으로 보여요.");
+    showToast("레시피 등록은 아직 준비 중이에요. 지금은 저장되지 않아요.");
   };
 
   const sug = suggestMain(ings);

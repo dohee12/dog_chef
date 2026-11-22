@@ -1,5 +1,5 @@
 # 이 파일을 .env로 복사하여 사용하세요
 # cp env_example.txt .env
 
-# NestJS 백엔드 주소 (backend 폴더). 비워 두면 http://localhost:4040/api 를 씁니다.
+# 예전 NestJS 백엔드 주소 (backend 폴더는 2026-11-22 삭제, AppLegacy.tsx 만 씀). 비워 두면 http://localhost:4040/api 를 씁니다.
 EXPO_PUBLIC_API_URL=http://localhost:4040/api

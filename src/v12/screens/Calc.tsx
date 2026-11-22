@@ -11,7 +11,7 @@ import {
 import { bump, pet, SEED, showToast, state, switchPet } from "../store";
 import { Avatar, C, Fold, Icon, Rich, shadow, SrcChips, Txt } from "../ui/base";
 
-const callToast = () => showToast("목업: 가까운 24시 동물병원 전화 연결");
+const callToast = () => showToast("전화 연결은 준비 중이에요. 가까운 동물병원에 직접 전화해 주세요.");
 
 function CallBtn({ mini }: { mini?: boolean }) {
   return (
@@ -104,8 +104,8 @@ export function CalcScreen() {
   const copy = () => {
     const tx = callLines.join("\n");
     const nav: any = Platform.OS === "web" ? (globalThis as any).navigator : null;
-    if (nav && nav.clipboard) nav.clipboard.writeText(tx).then(() => showToast("복사했어요. 병원에 문자로 보낼 수 있어요."), () => showToast("목업: 복사할 수 없는 환경이에요."));
-    else showToast("목업: 복사할 수 없는 환경이에요.");
+    if (nav && nav.clipboard) nav.clipboard.writeText(tx).then(() => showToast("복사했어요. 병원에 문자로 보낼 수 있어요."), () => showToast("이 브라우저에서는 복사할 수 없어요."));
+    else showToast("이 브라우저에서는 복사할 수 없어요.");
   };
 
   return (
@@ -128,10 +128,11 @@ export function CalcScreen() {
                 const on = x.key === state.pet, w = on ? p.weight : x.weight;
                 return (
                   <Pressable key={x.key} onPress={() => switchPet(x.key)} accessibilityState={{ selected: on }} style={[s.cpet, on && s.cpetOn]}>
-                    <Avatar p={x} size={32} />
+                    {/* 큰 글씨에서는 몸무게가 잘리지 않게 사진을 뺀다 */}
+                    {state.bigText ? null : <Avatar p={x} size={28} />}
                     <View style={{ flex: 1, minWidth: 0 }}>
                       <Txt style={{ fontSize: 15, fontWeight: "800" }} numberOfLines={1}>{x.name}</Txt>
-                      <Txt style={{ fontSize: 13, fontWeight: "600", color: on ? C.primaryDark : C.gray }}>{w ? w + "kg" : "몸무게 없음"}</Txt>
+                      <Txt style={{ fontSize: 13, fontWeight: "600", color: on ? C.primaryDark : C.gray }} numberOfLines={1}>{w ? w + "kg" : "몸무게 없음"}</Txt>
                     </View>
                   </Pressable>
                 );
@@ -161,13 +162,14 @@ export function CalcScreen() {
           {/* 2. 무엇을 */}
           <View style={s.sec}>
             <SecH n={2}>무엇을 먹었나요?</SecH>
-            <View style={{ flexDirection: "row", gap: 6, marginBottom: 10 }}>
+            {/* 한 줄에 다섯 칸이면 '포도·건포/도'처럼 글자 중간에서 끊겨, 한 줄에 세 칸씩 놓는다. */}
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 10 }}>
               {Object.entries(CALC).map(([k, v]) => {
                 const on = k === calc.food;
                 return (
                   <Pressable key={k} onPress={() => pickFood(k)} accessibilityState={{ selected: on }} style={[s.foodTile, on && { backgroundColor: C.primaryLight, borderColor: C.primary }]}>
                     <Txt style={{ fontSize: 22 }}>{v.icon}</Txt>
-                    <Txt style={{ fontSize: 13, fontWeight: on ? "800" : "700", color: on ? C.primaryDark : C.textLight, textAlign: "center" }} lh={1.15}>{v.tile}</Txt>
+                    <Txt style={{ fontSize: 13, fontWeight: on ? "800" : "700", color: on ? C.primaryDark : C.textLight, textAlign: "center" }} lh={1.15} numberOfLines={1}>{v.tile}</Txt>
                   </Pressable>
                 );
               })}
@@ -483,12 +485,12 @@ const s = StyleSheet.create({
   main: { backgroundColor: "white", borderRadius: 24, paddingVertical: 20, paddingHorizontal: 18, borderWidth: 1, borderColor: C.border, marginBottom: 16, ...shadow(4, 16, C.primary, 0.08, 2) },
   sec: { paddingBottom: 16, marginBottom: 16, borderBottomWidth: 1, borderBottomColor: C.border },
   step: { width: 24, height: 24, borderRadius: 12, backgroundColor: C.primary, alignItems: "center", justifyContent: "center" },
-  cpet: { flex: 1, flexDirection: "row", alignItems: "center", gap: 8, minHeight: 56, paddingVertical: 6, paddingHorizontal: 8, borderRadius: 14, borderWidth: 1.5, borderColor: C.border, backgroundColor: "white", minWidth: 0 },
+  cpet: { flex: 1, flexDirection: "row", alignItems: "center", gap: 6, minHeight: 56, paddingVertical: 6, paddingHorizontal: 7, borderRadius: 14, borderWidth: 1.5, borderColor: C.border, backgroundColor: "white", minWidth: 0 },
   cpetOn: { borderWidth: 2, borderColor: C.primary, backgroundColor: C.primaryLight },
   cwRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", columnGap: 8, rowGap: 6, marginTop: 10 },
   cwInput: { width: 72, height: 44, borderWidth: 1.5, borderColor: C.border, borderRadius: 10, fontSize: 16, fontWeight: "800", textAlign: "center", color: C.text },
   cwNote: { fontSize: 13, fontWeight: "600", color: C.gray },
-  foodTile: { flex: 1, minWidth: 0, alignItems: "center", justifyContent: "center", gap: 3, minHeight: 64, paddingVertical: 6, paddingHorizontal: 2, backgroundColor: C.lightBg, borderWidth: 1.5, borderColor: "transparent", borderRadius: 12 },
+  foodTile: { flexGrow: 1, flexBasis: "30%", minWidth: 0, alignItems: "center", justifyContent: "center", gap: 3, minHeight: 64, paddingVertical: 6, paddingHorizontal: 2, backgroundColor: C.lightBg, borderWidth: 1.5, borderColor: "transparent", borderRadius: 12 },
   subRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   subQ: { width: "100%", fontSize: 14, fontWeight: "800", marginTop: 4, marginBottom: 2 },
   subChip: { minHeight: 44, paddingHorizontal: 14, borderRadius: 22, borderWidth: 1.5, borderColor: C.border, backgroundColor: "white", justifyContent: "center" },
