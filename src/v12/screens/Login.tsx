@@ -5,8 +5,10 @@
 import React, { useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from "react-native";
 import { sendPasswordReset, signIn, signUp } from "../lib/auth";
+import { passwordError } from "../lib/password";
 import { auth, closeLoginSheet, showToast } from "../store";
 import { C, Icon, Txt } from "../ui/base";
+import { PasswordInput, PasswordRules } from "./PasswordFields";
 import { Sheet } from "./Pet";
 
 type Mode = "login" | "signup" | "reset";
@@ -22,15 +24,19 @@ export function LoginSheet() {
   const [busy, setBusy] = useState(false);
   const reason = auth.sheet?.reason || "";
 
-  const go = (m: Mode) => { setMode(m); setErr(""); setDone(""); };
+  // 탭을 바꾸면 비밀번호 칸은 비운다 (시트를 닫으면 컴포넌트가 사라지며 전부 비워진다).
+  const go = (m: Mode) => { setMode(m); setErr(""); setDone(""); setPw(""); setPw2(""); };
 
   const submit = async () => {
     if (busy) return;
     const e = email.trim();
     if (!EMAIL_RE.test(e)) return setErr("이메일 주소 형식을 확인해 주세요.");
-    if (mode !== "reset") {
-      if (pw.length < 6) return setErr("비밀번호는 6자 이상으로 넣어 주세요.");
-      if (mode === "signup" && pw !== pw2) return setErr("비밀번호 확인이 달라요. 같은 비밀번호를 넣어 주세요.");
+    // 로그인은 예전 규칙으로 만든 비밀번호도 있을 수 있어 비었는지만 본다. 가입은 공통 규칙을 따른다.
+    if (mode === "login" && !pw) return setErr("비밀번호를 넣어 주세요.");
+    if (mode === "signup") {
+      const pe = passwordError(pw);
+      if (pe) return setErr(pe);
+      if (pw !== pw2) return setErr("비밀번호 확인이 달라요. 같은 비밀번호를 넣어 주세요.");
     }
     setErr("");
     setBusy(true);
@@ -38,10 +44,11 @@ export function LoginSheet() {
       if (mode === "login") {
         const m = await signIn(e, pw);
         if (m) setErr(m);
-        else showToast("로그인했어요.");
+        else { setPw(""); showToast("로그인했어요."); }
         // 성공하면 onAuthStateChange → setAuthUser 가 시트를 닫고 하려던 동작을 이어서 한다.
       } else if (mode === "signup") {
         const r = await signUp(e, pw);
+        if (!r.error) { setPw(""); setPw2(""); }
         if (r.error) setErr(r.error);
         else if (r.needConfirm) setDone(`${e} 로 가입 확인 메일을 보냈어요. 메일의 링크를 누른 뒤 로그인해 주세요.`);
         else showToast("가입하고 로그인했어요.");
@@ -113,30 +120,27 @@ export function LoginSheet() {
       />
       {mode !== "reset" ? (
         <>
-          <Txt style={st.label}>비밀번호{mode === "signup" ? <Txt style={{ fontSize: 12, fontWeight: "400", color: C.textLight }}> (6자 이상)</Txt> : null}</Txt>
-          <TextInput
-            style={[st.input, !!err && /비밀번호/.test(err) && st.inputErr]}
+          <Txt style={st.label}>비밀번호</Txt>
+          <PasswordInput
+            error={!!err && /비밀번호/.test(err) && !/확인이 달라요/.test(err)}
             value={pw}
             onChangeText={(v) => { setPw(v); setErr(""); }}
             placeholder="비밀번호"
-            placeholderTextColor="#8A97A1"
-            secureTextEntry
             autoComplete={mode === "signup" ? "new-password" : "current-password"}
             accessibilityLabel="비밀번호"
             onSubmitEditing={mode === "login" ? submit : undefined}
           />
+          {mode === "signup" ? <PasswordRules pw={pw} /> : null}
         </>
       ) : null}
       {mode === "signup" ? (
         <>
           <Txt style={st.label}>비밀번호 확인</Txt>
-          <TextInput
-            style={[st.input, !!err && /확인/.test(err) && st.inputErr]}
+          <PasswordInput
+            error={!!err && /확인이 달라요/.test(err)}
             value={pw2}
             onChangeText={(v) => { setPw2(v); setErr(""); }}
             placeholder="비밀번호를 한 번 더"
-            placeholderTextColor="#8A97A1"
-            secureTextEntry
             autoComplete="new-password"
             accessibilityLabel="비밀번호 확인"
             onSubmitEditing={submit}

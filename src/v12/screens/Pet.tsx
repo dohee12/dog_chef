@@ -6,7 +6,7 @@ import React, { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { labelOf, STATUS_NAME } from "../logic/common";
 import { josa } from "../logic/josa";
-import { auth, bump, D, goStatus, J, pet, requireLogin, SEED, showToast, state, switchPet, type Pet, type Status } from "../store";
+import { auth, bump, D, goStatus, J, openPasswordSheet, pet, requireLogin, SEED, showToast, state, switchPet, type Pet, type Status } from "../store";
 import { Avatar, Bold, C, Fold, Icon, Lvl, SrcChips, Txt } from "../ui/base";
 import { s as ds } from "./Detail";
 import { s as fs } from "./Add";
@@ -166,9 +166,14 @@ function AccountBox() {
         <Txt style={{ fontSize: 12, color: C.textLight, marginTop: 2 }} lh={1.4}>{u ? "찜·반려견 정보가 이 계정에 저장돼요." : "레시피는 그냥 볼 수 있어요. 저장할 때만 로그인해요."}</Txt>
       </View>
       {u ? (
-        <Pressable onPress={signOut} style={[s.edit, { minHeight: 40 }]} accessibilityRole="button">
-          <Txt style={{ fontSize: 13, fontWeight: "800", color: C.primaryDark }}>로그아웃</Txt>
-        </Pressable>
+        <View style={{ gap: 6 }}>
+          <Pressable onPress={() => openPasswordSheet("change")} style={[s.edit, { minHeight: 40 }]} accessibilityRole="button">
+            <Txt style={{ fontSize: 13, fontWeight: "800", color: C.primaryDark }}>비밀번호 바꾸기</Txt>
+          </Pressable>
+          <Pressable onPress={signOut} style={[s.edit, { minHeight: 40 }]} accessibilityRole="button">
+            <Txt style={{ fontSize: 13, fontWeight: "800", color: C.primaryDark }}>로그아웃</Txt>
+          </Pressable>
+        </View>
       ) : (
         <Pressable onPress={() => requireLogin(() => {})} style={[s.edit, { minHeight: 40 }]} accessibilityRole="button">
           <Txt style={{ fontSize: 13, fontWeight: "800", color: C.primaryDark }}>로그인</Txt>

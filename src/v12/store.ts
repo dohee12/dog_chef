@@ -129,6 +129,8 @@ export const auth = {
   ready: false, // 앱 시작 때 저장된 세션을 다 읽었나
   user: null as AuthUser | null,
   sheet: null as null | { reason: string },
+  // 새 비밀번호 시트: 재설정 메일 링크로 돌아왔을 때(recovery) / 로그인한 사람이 바꿀 때(change)
+  pwSheet: null as null | "recovery" | "change",
 };
 let pendingAction: (() => void) | null = null;
 
@@ -145,6 +147,14 @@ export function requireLogin(action: () => void, reason = "로그인하면 저�
 export function closeLoginSheet() {
   pendingAction = null;
   auth.sheet = null;
+  bump();
+}
+export function openPasswordSheet(kind: "recovery" | "change") {
+  auth.pwSheet = kind;
+  bump();
+}
+export function closePasswordSheet() {
+  auth.pwSheet = null;
   bump();
 }
 /** 세션이 바뀔 때 lib/auth 가 부른다. 새로 로그인됐으면 하려던 동작을 이어서 한다. */
