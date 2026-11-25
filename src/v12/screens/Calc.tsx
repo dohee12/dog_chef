@@ -8,7 +8,7 @@ import {
   amountText, ateText, BUBBLE, calc, CALC, calcPet, computeCalc, curItem, delHistory, history, LNAME, LTITLE, pickFood, pickSub, PL, plain,
   saveIntake, setAmount, setAte, setItem, setItemCount, setMode, setPortion, setTempWeight, setUnknownAmt, stepAmount, subText, tox, unitOf,
 } from "../logic/calc";
-import { bump, pet, SEED, showToast, state, switchPet } from "../store";
+import { bump, pet, requireLogin, SEED, showToast, state, switchPet } from "../store";
 import { Avatar, C, Fold, Icon, Rich, shadow, SrcChips, Txt } from "../ui/base";
 
 const callToast = () => showToast("전화 연결은 준비 중이에요. 가까운 동물병원에 직접 전화해 주세요.");
@@ -67,7 +67,7 @@ export function CalcScreen() {
   if (r.level === -1) {
     cls = "lv0"; title = `${p.name}의 몸무게를 먼저 넣어 주세요`; sub = "몸무게가 있어야 위험도를 계산할 수 있어요.";
     btn = (
-      <Pressable onPress={() => { state.tab = "pet"; state.petSheet = "basic"; bump(); }} style={[s.vbCall, { backgroundColor: C.primary }]}>
+      <Pressable onPress={() => requireLogin(() => { state.tab = "pet"; state.petSheet = "basic"; bump(); }, "반려견 정보는 계정에 저장돼서 다른 기기에서도 볼 수 있어요.")} style={[s.vbCall, { backgroundColor: C.primary }]}>
         <Icon name="create-outline" size={20} color="white" />
         <Txt style={{ fontSize: 13, fontWeight: "800", color: "white" }}>몸무게 넣기</Txt>
       </Pressable>
@@ -412,7 +412,7 @@ export function CalcScreen() {
             </Fold>
           ) : null}
           {shown ? (
-            <Pressable onPress={saveIntake} style={s.saveBtn}>
+            <Pressable onPress={() => requireLogin(saveIntake, "먹은 기록은 계정에 저장돼서 나중에 병원에서 보여 줄 수 있어요.")} style={s.saveBtn}>
               <Icon name="bookmark-outline" size={18} color={C.primaryDark} />
               <Txt style={{ fontSize: 14, fontWeight: "800", color: C.primaryDark }}>먹은 기록 남기기</Txt>
             </Pressable>

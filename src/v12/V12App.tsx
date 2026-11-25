@@ -10,8 +10,11 @@ import { CalcScreen } from "./screens/Calc";
 import { ChatModal, SourceSheet } from "./screens/Chat";
 import { DetailOverlay } from "./screens/Detail";
 import { FavScreen, HomeScreen } from "./screens/Home";
+import { LoginSheet } from "./screens/Login";
+import { NewPasswordSheet } from "./screens/NewPassword";
 import { PetScreen, PetSheet, Wizard } from "./screens/Pet";
-import { bump, D, pet, SEED, setSeason, showTab, state, switchPet, toggleBigText, useStore, type Season, type Tab } from "./store";
+import { initAuth } from "./lib/auth";
+import { auth, bump, D, openPasswordSheet, pet, SEED, setSeason, showTab, state, switchPet, toggleBigText, useStore, type Season, type Tab } from "./store";
 import { Avatar, Bold, C, Icon, ScaleCtx, shadow, Txt } from "./ui/base";
 
 const TABS: [Tab, string, string][] = [
@@ -150,6 +153,8 @@ function Frame() {
         {wiz ? <Wizard onClose={() => setWiz(false)} /> : null}
         {state.petSheet ? <PetSheet /> : null}
         {state.source ? <SourceSheet /> : null}
+        {auth.sheet ? <LoginSheet /> : null}
+        {auth.pwSheet ? <NewPasswordSheet /> : null}
       </ScaleCtx.Provider>
       {state.toast ? (
         <View style={s.toastWrap} pointerEvents="none">
@@ -251,6 +256,15 @@ function Shell() {
 }
 
 export default function V12App() {
+  React.useEffect(() => {
+    initAuth();
+    // 개발 중 화면 확인용: 웹 주소에 ?pwsheet=recovery 또는 ?pwsheet=change 를 붙이면 새 비밀번호 시트를 바로 연다.
+    // 실제 비밀번호 변경은 로그인 세션이 있어야 되고, 배포 빌드(__DEV__ false)에서는 이 코드가 동작하지 않는다.
+    if (__DEV__ && Platform.OS === "web" && typeof window !== "undefined") {
+      const k = new URLSearchParams(window.location.search).get("pwsheet");
+      if (k === "recovery" || k === "change") openPasswordSheet(k);
+    }
+  }, []);
   return (
     <SafeAreaProvider>
       <Shell />
