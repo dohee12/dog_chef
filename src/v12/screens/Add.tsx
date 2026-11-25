@@ -7,12 +7,15 @@ import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { CATS, LV, SEASON, suggestMain } from "../logic/common";
-import { J, pet, showToast } from "../store";
+import { J, pet, showToast, type Recipe } from "../store";
 import { Bold, C, Icon, Lvl, shadow, Txt } from "../ui/base";
 import { StepItem } from "./Detail";
 
+const DESC_MAX = 80;
+
 export function AddScreen() {
   const [title, setTitle] = useState("");
+  const [desc, setDesc] = useState("");
   const [ings, setIngs] = useState<string[]>([]);
   const [steps, setSteps] = useState<string[]>([]);
   const [ingIn, setIngIn] = useState("");
@@ -32,6 +35,10 @@ export function AddScreen() {
   const submit = () => {
     if (!title.trim()) { showToast("레시피 제목을 넣어 주세요."); return; }
     if (!ings.length) { showToast("재료를 하나 이상 넣어 주세요."); return; }
+    // 저장 연결 전: 화면에서 만드는 레시피 초안. 한 줄 소개는 recipes.description 칸(Recipe.desc)으로 간다.
+    const draft: Pick<Recipe, "title" | "desc" | "category" | "seasons" | "ingredients" | "steps" | "image"> = {
+      title: title.trim(), desc: desc.trim(), category: curCat ?? "", seasons, ingredients: ings, steps, image: photo,
+    };
     showToast("레시피 등록은 아직 준비 중이에요. 지금은 저장되지 않아요.");
   };
 
@@ -50,6 +57,14 @@ export function AddScreen() {
       <View style={s.group}>
         <Txt style={s.label}>레시피 제목 *</Txt>
         <TextInput style={s.input} value={title} onChangeText={setTitle} placeholder="예: 단호박 닭가슴살 쿠키" placeholderTextColor="#8A97A1" />
+      </View>
+      <View style={s.group}>
+        <Txt style={s.label}>한 줄 소개 <Txt style={{ fontSize: 12, fontWeight: "400", color: C.textLight }}>(선택)</Txt></Txt>
+        <TextInput style={s.input} value={desc} onChangeText={setDesc} maxLength={DESC_MAX} placeholder="예: 단호박으로 달콤하게, 간식으로 딱 좋아요" placeholderTextColor="#8A97A1" />
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Txt style={[s.ppNote, { marginBottom: 0, flex: 1 }]} lh={1.5}>레시피 카드에 한 줄로 보여요.</Txt>
+          <Txt style={[s.ppNote, { marginBottom: 0, marginLeft: 8 }]}>{desc.length}/{DESC_MAX}</Txt>
+        </View>
       </View>
       <View style={s.group}>
         <Txt style={s.label}>대표 사진</Txt>
