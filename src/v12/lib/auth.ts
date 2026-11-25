@@ -2,7 +2,8 @@
 // 앱 시작 때 initAuth() 한 번: 저장된 세션을 읽고, 이후 로그인·로그아웃을 store 에 알린다.
 import type { User } from "@supabase/supabase-js";
 import { Platform } from "react-native";
-import { openPasswordSheet, setAuthUser, showToast } from "../store";
+import { clearHistory } from "../logic/calc";
+import { openPasswordSheet, resetAccountData, setAuthUser, showToast } from "../store";
 import { PW_RULE_TEXT } from "./password";
 import { supabase } from "./supabase";
 
@@ -18,6 +19,10 @@ export function initAuth() {
   }
   supabase.auth.getSession().then(({ data }) => setAuthUser(toUser(data.session?.user)));
   supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "SIGNED_OUT") {
+      resetAccountData();
+      clearHistory();
+    }
     setAuthUser(toUser(session?.user));
     // 재설정 메일의 링크로 돌아오면 Supabase 가 임시 세션을 만들고 이 이벤트를 보낸다 → 새 비밀번호 시트를 연다.
     if (event === "PASSWORD_RECOVERY") openPasswordSheet("recovery");

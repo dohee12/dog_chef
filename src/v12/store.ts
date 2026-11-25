@@ -158,6 +158,14 @@ export function closePasswordSheet() {
   bump();
 }
 /** 세션이 바뀔 때 lib/auth 가 부른다. 새로 로그인됐으면 하려던 동작을 이어서 한다. */
+// 로그아웃하면 그 계정으로 화면에 넣은 반려견·찜을 지우고 처음 예시 데이터로 되돌린다.
+// (아직 서버 저장 전이라 로그인 중 바꾼 내용은 이 화면에만 있다.)
+export function resetAccountData() {
+  SEED.pets = JSON.parse(JSON.stringify(SEED0)).pets;
+  state.pet = SEED.pets[0].key;
+  state.favs.clear();
+  state.petSheet = null;
+}
 export function setAuthUser(u: AuthUser | null) {
   auth.user = u;
   auth.ready = true;

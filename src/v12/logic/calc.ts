@@ -299,4 +299,6 @@ export function saveIntake() {
   history.unshift({ key, icon: f.icon, pet: p.name, w: p.weight, what: `${subText(f)} ${amountText(f)}`, num: plain(r.num), ate: ateText(), lv });
   showToast("먹은 기록을 남겼어요.");
 }
+/** 로그아웃할 때 화면에 남은 먹은 기록을 비운다. */
+export function clearHistory() { history.length = 0; savedKeys.clear(); }
 export function delHistory(i: number) { savedKeys.delete(history[i].key); history.splice(i, 1); bump(); }
