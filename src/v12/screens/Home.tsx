@@ -6,7 +6,7 @@ import { Image } from "expo-image";
 import React from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { blockReason, CATS, SEASON, SEASON_ICON, STATUS_NAME } from "../logic/common";
-import { bump, J, pet, SEED, state, toggleFav, type Pet, type Recipe } from "../store";
+import { bump, J, pet, SEED, state, toggleFav, type Pet, type Recipe, type RecipeId } from "../store";
 import { C, Fold, Icon, Lvl, shadow, Txt } from "../ui/base";
 
 function StatusBadge({ j, p }: { j: any; p: Pet }) {
@@ -29,7 +29,7 @@ export function RecipeVisual({ r, height }: { r: Recipe; height: number }) {
   );
 }
 
-export function RecipeCard({ r, j, p, onOpen }: { r: Recipe; j: any; p: Pet; onOpen: (id: number) => void }) {
+export function RecipeCard({ r, j, p, onOpen }: { r: Recipe; j: any; p: Pet; onOpen: (id: RecipeId) => void }) {
   const fav = state.favs.has(r.id);
   return (
     <Pressable onPress={() => onOpen(r.id)} style={[s.card, j.status === "no" && { opacity: 0.62 }]}>
@@ -64,7 +64,7 @@ export function RecipeCard({ r, j, p, onOpen }: { r: Recipe; j: any; p: Pet; onO
   );
 }
 
-export function HomeScreen({ onOpen }: { onOpen: (id: number) => void }) {
+export function HomeScreen({ onOpen }: { onOpen: (id: RecipeId) => void }) {
   const p = pet();
   const seasonChip: [string, string, string] = ["season", SEASON_ICON[state.season], state.season + " 추천"];
   const chips: [string, string, string][] = [["all", "apps-outline", "전체"], ...CATS, seasonChip];
@@ -83,6 +83,9 @@ export function HomeScreen({ onOpen }: { onOpen: (id: number) => void }) {
 
   return (
     <View>
+      {state.recipeSource === "error" ? (
+        <Txt style={{ fontSize: 12, color: C.textLight, marginBottom: 8 }} lh={1.5}>서버에 연결하지 못해 예시 레시피를 보여 드려요.</Txt>
+      ) : null}
       <View style={s.search}>
         <Icon name="search" size={18} color={C.textLight} />
         <TextInput
@@ -166,7 +169,7 @@ export function HomeScreen({ onOpen }: { onOpen: (id: number) => void }) {
   );
 }
 
-export function FavScreen({ onOpen }: { onOpen: (id: number) => void }) {
+export function FavScreen({ onOpen }: { onOpen: (id: RecipeId) => void }) {
   const p = pet(), list = SEED.recipes.filter((r) => state.favs.has(r.id));
   return (
     <View>

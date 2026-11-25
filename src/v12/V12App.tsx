@@ -4,6 +4,7 @@
 import React from "react";
 import { Animated, Platform, Pressable, ScrollView, StyleSheet, useWindowDimensions, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
+import { loadRecipes } from "./lib/remote";
 import { SEASON } from "./logic/common";
 import { AddScreen } from "./screens/Add";
 import { CalcScreen } from "./screens/Calc";
@@ -11,7 +12,7 @@ import { ChatModal, SourceSheet } from "./screens/Chat";
 import { DetailOverlay } from "./screens/Detail";
 import { FavScreen, HomeScreen } from "./screens/Home";
 import { PetScreen, PetSheet, Wizard } from "./screens/Pet";
-import { bump, D, pet, SEED, setSeason, showTab, state, switchPet, toggleBigText, useStore, type Season, type Tab } from "./store";
+import { bump, D, pet, SEED, setSeason, showTab, state, switchPet, toggleBigText, useStore, type RecipeId, type Season, type Tab } from "./store";
 import { Avatar, Bold, C, Icon, ScaleCtx, shadow, Txt } from "./ui/base";
 
 const TABS: [Tab, string, string][] = [
@@ -128,7 +129,7 @@ function Frame() {
   const [wiz, setWiz] = React.useState(false);
   const fab = useFabHiddenOnScroll(state.tab);
   const scale = state.bigText ? 1.18 : 1;
-  const open = (id: number) => { state.detailId = id; bump(); };
+  const open = (id: RecipeId) => { state.detailId = id; bump(); };
   // 먹었어요(계산)는 자체 화면이 있고, 등록은 입력 칸·버튼이 화면 오른쪽 아래까지 차서 버튼을 두지 않는다.
   const showFab = state.tab !== "calc" && state.tab !== "add";
   return (
@@ -146,7 +147,7 @@ function Frame() {
         </View>
         {showFab ? <ChefFab hidden={fab.hidden} /> : null}
         {state.chatOpen ? <ChatModal /> : null}
-        {state.detailId !== null ? <DetailOverlay id={state.detailId} onClose={() => { state.detailId = null; bump(); }} /> : null}
+        {state.detailId !== null && SEED.recipes.some((x) => x.id === state.detailId) ? <DetailOverlay id={state.detailId} onClose={() => { state.detailId = null; bump(); }} /> : null}
         {wiz ? <Wizard onClose={() => setWiz(false)} /> : null}
         {state.petSheet ? <PetSheet /> : null}
         {state.source ? <SourceSheet /> : null}
@@ -251,6 +252,7 @@ function Shell() {
 }
 
 export default function V12App() {
+  React.useEffect(() => { loadRecipes(); }, []);
   return (
     <SafeAreaProvider>
       <Shell />
