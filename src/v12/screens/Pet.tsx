@@ -158,15 +158,20 @@ export function PetScreen({ onWizard }: { onWizard: () => void }) {
 // ---------- 계정 (로그인 상태 · 로그아웃) ----------
 function AccountBox() {
   const u = auth.user;
+  // 버튼은 글 아래 왼쪽에 둔다. 오른쪽 아래에 떠 있는 AI 멍셰프 버튼에 가리지 않게.
   return (
-    <View style={[s.box, { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 6 }]}>
-      <Icon name="person-circle-outline" size={26} color={C.primaryDark} />
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <Txt style={{ fontSize: 13.5, fontWeight: "800" }} numberOfLines={1}>{u ? u.email || "로그인됨" : "로그인하지 않았어요"}</Txt>
-        <Txt style={{ fontSize: 12, color: C.textLight, marginTop: 2 }} lh={1.4}>{u ? "찜·반려견 정보가 이 계정에 저장돼요." : "레시피는 그냥 볼 수 있어요. 저장할 때만 로그인해요."}</Txt>
+    <View style={[s.box, { gap: 10, marginTop: 6 }]}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <Icon name="person-circle-outline" size={26} color={C.primaryDark} />
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Txt style={{ fontSize: 13.5, fontWeight: "800" }} numberOfLines={1}>{u ? u.email || "로그인됨" : "로그인하지 않았어요"}</Txt>
+          <Txt style={{ fontSize: 12, color: C.textLight, marginTop: 2 }} lh={1.4}>
+            {u ? "계정 저장은 아직 준비 중이에요. 지금은 새로고침하거나 로그아웃하면 찜·반려견 정보가 사라져요." : "레시피는 그냥 볼 수 있어요. 저장할 때만 로그인해요."}
+          </Txt>
+        </View>
       </View>
       {u ? (
-        <View style={{ gap: 6 }}>
+        <View style={{ flexDirection: "row", gap: 8 }}>
           <Pressable onPress={() => openPasswordSheet("change")} style={[s.edit, { minHeight: 40 }]} accessibilityRole="button">
             <Txt style={{ fontSize: 13, fontWeight: "800", color: C.primaryDark }}>비밀번호 바꾸기</Txt>
           </Pressable>
@@ -175,9 +180,11 @@ function AccountBox() {
           </Pressable>
         </View>
       ) : (
-        <Pressable onPress={() => requireLogin(() => {})} style={[s.edit, { minHeight: 40 }]} accessibilityRole="button">
-          <Txt style={{ fontSize: 13, fontWeight: "800", color: C.primaryDark }}>로그인</Txt>
-        </Pressable>
+        <View style={{ flexDirection: "row" }}>
+          <Pressable onPress={() => requireLogin(() => {})} style={[s.edit, { minHeight: 40 }]} accessibilityRole="button">
+            <Txt style={{ fontSize: 13, fontWeight: "800", color: C.primaryDark }}>로그인</Txt>
+          </Pressable>
+        </View>
       )}
     </View>
   );
