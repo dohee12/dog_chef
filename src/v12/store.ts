@@ -120,3 +120,44 @@ export function setSeason(s: Season) {
   Object.assign(state, { season: s, cat: "season", tab: "home" });
   bump();
 }
+
+// ---------- 로그인 ----------
+// 보기는 로그인 없이, 저장이 필요한 동작만 로그인을 요구한다.
+// requireLogin(동작, 이유): 로그인돼 있으면 바로 하고, 아니면 로그인 시트를 띄웠다가 로그인하면 그 동작을 이어서 한다.
+export type AuthUser = { id: string; email: string | null };
+export const auth = {
+  ready: false, // 앱 시작 때 저장된 세션을 다 읽었나
+  user: null as AuthUser | null,
+  sheet: null as null | { reason: string },
+};
+let pendingAction: (() => void) | null = null;
+
+export function requireLogin(action: () => void, reason = "로그인하면 저장돼서 다른 기기에서도 볼 수 있어요.") {
+  if (auth.user) {
+    action();
+    return;
+  }
+  pendingAction = action;
+  auth.sheet = { reason };
+  bump();
+}
+/** 로그인 시트를 닫는다. 로그인하지 않고 닫으면 하려던 동작은 버린다. */
+export function closeLoginSheet() {
+  pendingAction = null;
+  auth.sheet = null;
+  bump();
+}
+/** 세션이 바뀔 때 lib/auth 가 부른다. 새로 로그인됐으면 하려던 동작을 이어서 한다. */
+export function setAuthUser(u: AuthUser | null) {
+  auth.user = u;
+  auth.ready = true;
+  if (u && auth.sheet) {
+    auth.sheet = null;
+    const run = pendingAction;
+    pendingAction = null;
+    bump();
+    if (run) run();
+    return;
+  }
+  bump();
+}

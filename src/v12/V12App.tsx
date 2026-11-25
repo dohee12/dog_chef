@@ -10,8 +10,10 @@ import { CalcScreen } from "./screens/Calc";
 import { ChatModal, SourceSheet } from "./screens/Chat";
 import { DetailOverlay } from "./screens/Detail";
 import { FavScreen, HomeScreen } from "./screens/Home";
+import { LoginSheet } from "./screens/Login";
 import { PetScreen, PetSheet, Wizard } from "./screens/Pet";
-import { bump, D, pet, SEED, setSeason, showTab, state, switchPet, toggleBigText, useStore, type Season, type Tab } from "./store";
+import { initAuth } from "./lib/auth";
+import { auth, bump, D, pet, SEED, setSeason, showTab, state, switchPet, toggleBigText, useStore, type Season, type Tab } from "./store";
 import { Avatar, Bold, C, Icon, ScaleCtx, shadow, Txt } from "./ui/base";
 
 const TABS: [Tab, string, string][] = [
@@ -150,6 +152,7 @@ function Frame() {
         {wiz ? <Wizard onClose={() => setWiz(false)} /> : null}
         {state.petSheet ? <PetSheet /> : null}
         {state.source ? <SourceSheet /> : null}
+        {auth.sheet ? <LoginSheet /> : null}
       </ScaleCtx.Provider>
       {state.toast ? (
         <View style={s.toastWrap} pointerEvents="none">
@@ -251,6 +254,7 @@ function Shell() {
 }
 
 export default function V12App() {
+  React.useEffect(() => initAuth(), []);
   return (
     <SafeAreaProvider>
       <Shell />

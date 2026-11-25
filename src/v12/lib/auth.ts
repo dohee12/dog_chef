@@ -1,0 +1,73 @@
+// Supabase Auth 이메일 로그인. 세션은 supabase.ts 에서 AsyncStorage 에 저장된다.
+// 앱 시작 때 initAuth() 한 번: 저장된 세션을 읽고, 이후 로그인·로그아웃을 store 에 알린다.
+import type { User } from "@supabase/supabase-js";
+import { Platform } from "react-native";
+import { setAuthUser, showToast } from "../store";
+import { supabase } from "./supabase";
+
+const toUser = (u: User | null | undefined) => (u ? { id: u.id, email: u.email ?? null } : null);
+
+let started = false;
+export function initAuth() {
+  if (started) return;
+  started = true;
+  if (!supabase) {
+    setAuthUser(null);
+    return;
+  }
+  supabase.auth.getSession().then(({ data }) => setAuthUser(toUser(data.session?.user)));
+  supabase.auth.onAuthStateChange((event, session) => {
+    setAuthUser(toUser(session?.user));
+    if (event === "PASSWORD_RECOVERY") showToast("새 비밀번호 설정 화면은 준비 중이에요.");
+  });
+}
+
+export const NO_SERVER = "서버 연결 설정(.env)이 없어 로그인할 수 없어요.";
+
+/** Supabase 오류를 한국어 문구로 바꾼다. */
+export function authErrorText(e: { message?: string; code?: string; status?: number } | null | undefined): string {
+  if (!e) return "";
+  const code = e.code || "";
+  const m = (e.message || "").toLowerCase();
+  if (code === "invalid_credentials" || m.includes("invalid login credentials")) return "이메일 또는 비밀번호가 맞지 않아요.";
+  if (code === "email_not_confirmed" || m.includes("email not confirmed")) return "가입 확인 메일의 링크를 먼저 눌러 주세요.";
+  if (code === "user_already_exists" || code === "email_exists" || m.includes("already registered")) return "이미 가입된 이메일이에요. 로그인해 주세요.";
+  if (code === "weak_password" || m.includes("password should be")) return "비밀번호가 너무 약해요. 6자 이상으로 넣어 주세요.";
+  if (code === "email_address_invalid" || m.includes("invalid format") || m.includes("is invalid")) return "이메일 주소 형식을 확인해 주세요.";
+  if (code === "over_email_send_rate_limit" || code === "over_request_rate_limit" || e.status === 429 || m.includes("rate limit"))
+    return "요청이 많아 잠시 막혔어요. 조금 뒤에 다시 해 주세요.";
+  if (code === "signup_disabled" || m.includes("signups not allowed")) return "지금은 회원가입을 받지 않아요.";
+  if (m.includes("failed to fetch") || m.includes("network")) return "인터넷 연결을 확인해 주세요.";
+  return "잠시 문제가 생겼어요. 다시 해 주세요.";
+}
+
+const redirectTo = () => (Platform.OS === "web" && typeof window !== "undefined" ? window.location.origin : undefined);
+
+export async function signIn(email: string, password: string): Promise<string> {
+  if (!supabase) return NO_SERVER;
+  const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+  return authErrorText(error);
+}
+
+/** 가입. 확인 메일이 필요하면 needConfirm=true (세션이 아직 없음). */
+export async function signUp(email: string, password: string): Promise<{ error: string; needConfirm: boolean }> {
+  if (!supabase) return { error: NO_SERVER, needConfirm: false };
+  const { data, error } = await supabase.auth.signUp({ email: email.trim(), password, options: { emailRedirectTo: redirectTo() } });
+  if (error) return { error: authErrorText(error), needConfirm: false };
+  // 이미 가입된 이메일이면 Supabase 는 오류 대신 identities 가 빈 사용자를 돌려준다.
+  if (data.user && Array.isArray(data.user.identities) && data.user.identities.length === 0)
+    return { error: "이미 가입된 이메일이에요. 로그인해 주세요.", needConfirm: false };
+  return { error: "", needConfirm: !data.session };
+}
+
+export async function sendPasswordReset(email: string): Promise<string> {
+  if (!supabase) return NO_SERVER;
+  const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), { redirectTo: redirectTo() });
+  return authErrorText(error);
+}
+
+export async function signOut() {
+  if (!supabase) return;
+  const { error } = await supabase.auth.signOut();
+  showToast(error ? authErrorText(error) : "로그아웃했어요.");
+}

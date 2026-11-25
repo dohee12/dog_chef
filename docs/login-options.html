@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>로그인 화면 3안</title>
+<style>
+  :root { --p:#1D5C7A; --pl:#E2EEF4; --pd:#123F55; --bg:#F5F8FA; --lb:#EEF3F6; --t:#14212B; --tl:#52616D; --b:#DDE5EA; --bd:#B8C6CF; --d:#B42318; --db:#FDECEC; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#E6EEF3; font-family:-apple-system, "Pretendard", "Malgun Gothic", sans-serif; color:var(--t); padding:24px; }
+  h1 { font-size:20px; margin:0 0 4px; }
+  .sub { color:var(--tl); font-size:13px; margin:0 0 20px; }
+  .row { display:flex; gap:28px; flex-wrap:wrap; align-items:flex-start; }
+  .col { width:360px; }
+  .col h2 { font-size:15px; margin:0 0 4px; color:var(--pd); }
+  .col p.desc { font-size:12.5px; color:var(--tl); margin:0 0 10px; line-height:1.5; min-height:56px; }
+  .phone { width:360px; height:720px; background:var(--bg); border:6px solid #CBD5E1; border-radius:32px; overflow:hidden; position:relative; }
+  .hdr { background:#fff; height:52px; display:flex; align-items:center; padding:0 18px; border-bottom:1px solid var(--b); gap:6px; }
+  .logo { width:28px; height:28px; border-radius:8px; background:var(--p); color:#fff; display:flex; align-items:center; justify-content:center; font-size:14px; }
+  .lt { font-weight:800; color:var(--p); font-size:19px; }
+  .body { padding:16px; }
+  .card { background:#fff; border-radius:14px; border:1px solid var(--b); padding:12px; margin-bottom:10px; }
+  .muted { opacity:.45; }
+  .label { font-size:13px; font-weight:700; margin:12px 0 6px; }
+  .input { height:48px; border:1px solid var(--b); background:#fff; border-radius:12px; padding:0 14px; display:flex; align-items:center; font-size:14px; color:#8A97A1; }
+  .input.err { border-color:var(--d); }
+  .errtx { color:var(--d); font-size:12px; margin-top:5px; font-weight:600; }
+  .btn { height:50px; border-radius:14px; background:var(--p); color:#fff; font-weight:800; font-size:15px; display:flex; align-items:center; justify-content:center; margin-top:16px; }
+  .ghost { background:var(--lb); color:var(--pd); }
+  .dis { background:#fff; border:1px solid var(--b); color:var(--bd); height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:13.5px; font-weight:700; margin-top:8px; }
+  .link { color:var(--p); font-weight:700; font-size:13px; }
+  .center { text-align:center; }
+  .tabbar { position:absolute; bottom:0; left:0; right:0; height:60px; background:#fff; border-top:1px solid var(--b); }
+  .seg { display:flex; background:var(--lb); border-radius:12px; padding:4px; gap:4px; margin-top:12px; }
+  .seg div { flex:1; text-align:center; padding:9px 0; border-radius:9px; font-size:13.5px; font-weight:700; color:var(--tl); }
+  .seg .on { background:#fff; color:var(--pd); box-shadow:0 1px 3px rgba(0,0,0,.08); }
+  /* A: 바텀시트 */
+  .dim { position:absolute; inset:0; background:rgba(20,33,43,.45); }
+  .sheet { position:absolute; left:0; right:0; bottom:0; background:#fff; border-radius:22px 22px 0 0; padding:14px 18px 22px; }
+  .grab { width:40px; height:4px; background:var(--b); border-radius:2px; margin:0 auto 12px; }
+  .why { background:var(--pl); border-radius:12px; padding:10px 12px; font-size:12.5px; color:var(--pd); line-height:1.5; display:flex; gap:8px; }
+  /* B: 전체 화면 */
+  .hero { text-align:center; padding:26px 0 6px; }
+  .bigmark { width:64px; height:64px; border-radius:18px; background:var(--p); color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:30px; }
+  /* C: 단계형 */
+  .steps { display:flex; gap:6px; margin:6px 0 14px; }
+  .steps i { flex:1; height:4px; border-radius:2px; background:var(--b); }
+  .steps i.on { background:var(--p); }
+  .chip { display:inline-block; background:var(--lb); border-radius:999px; padding:6px 12px; font-size:13px; color:var(--pd); font-weight:700; }
+</style>
+</head>
+<body>
+<h1>멍슐랭 로그인 화면 3안</h1>
+<p class="sub">상황: 로그인 없이 레시피를 보다가 찜(♥)을 눌렀을 때 뜨는 화면. 이메일 로그인만 동작, 카카오·Google은 자리만 비활성.</p>
+<div class="row">
+
+  <!-- A -->
+  <div class="col">
+    <h2>A안 · 아래에서 올라오는 시트</h2>
+    <p class="desc">보던 레시피 화면 위에 시트가 올라온다. 왜 로그인이 필요한지 한 줄로 말하고, 로그인·회원가입은 위쪽 탭으로 바꾼다. 닫으면 바로 보던 화면.</p>
+    <div class="phone">
+      <div class="hdr"><div class="logo">🐾</div><div class="lt">멍슐랭</div></div>
+      <div class="body">
+        <div class="card muted" style="height:120px"></div>
+        <div class="card muted" style="height:120px"></div>
+      </div>
+      <div class="dim"></div>
+      <div class="sheet">
+        <div class="grab"></div>
+        <div style="font-size:17px;font-weight:900">로그인하고 저장해요</div>
+        <div class="why" style="margin-top:10px">♥ <span>찜한 레시피는 계정에 저장돼서 다른 기기에서도 볼 수 있어요.</span></div>
+        <div class="seg"><div class="on">로그인</div><div>회원가입</div></div>
+        <div class="label">이메일</div>
+        <div class="input">you@example.com</div>
+        <div class="label">비밀번호</div>
+        <div class="input err">••••</div>
+        <div class="errtx">이메일 또는 비밀번호가 맞지 않아요.</div>
+        <div class="btn">로그인</div>
+        <div class="center" style="margin-top:12px"><span class="link">비밀번호를 잊었어요</span></div>
+        <div class="dis">카카오로 시작하기 (준비 중)</div>
+        <div class="dis">Google로 시작하기 (준비 중)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- B -->
+  <div class="col">
+    <h2>B안 · 전체 화면 로그인</h2>
+    <p class="desc">앱 첫 화면처럼 로고를 크게 둔 전체 화면. 소셜 버튼을 위에, 이메일은 아래에 둔다. 브랜드 느낌은 강하지만 보던 화면이 가려진다.</p>
+    <div class="phone">
+      <div class="hdr"><span style="font-size:18px">‹</span><span style="font-weight:800;margin-left:8px">로그인</span></div>
+      <div class="body">
+        <div class="hero"><div class="bigmark">🐾</div>
+          <div style="font-size:22px;font-weight:900;color:var(--p);margin-top:10px">멍슐랭</div>
+          <div style="font-size:13px;color:var(--tl);margin-top:4px">우리 아이 맞춤 수제 간식</div></div>
+        <div class="dis">카카오로 시작하기 (준비 중)</div>
+        <div class="dis">Google로 시작하기 (준비 중)</div>
+        <div class="center" style="color:var(--tl);font-size:12px;margin:14px 0 2px">또는 이메일로</div>
+        <div class="input">이메일</div>
+        <div class="input" style="margin-top:8px">비밀번호</div>
+        <div class="btn">로그인</div>
+        <div style="display:flex;justify-content:space-between;margin-top:14px"><span class="link">회원가입</span><span class="link">비밀번호 찾기</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- C -->
+  <div class="col">
+    <h2>C안 · 이메일 먼저, 한 칸씩</h2>
+    <p class="desc">이메일만 먼저 받고 다음에 비밀번호를 받는 단계형. 한 화면에 칸이 하나라 어르신도 쉽지만, 가입인지 로그인인지 서버에서 알 수 없어 '처음이에요' 버튼이 따로 필요하다.</p>
+    <div class="phone">
+      <div class="hdr"><span style="font-size:18px">✕</span><span style="font-weight:800;margin-left:8px">찜하려면 로그인</span></div>
+      <div class="body">
+        <div class="steps"><i class="on"></i><i></i></div>
+        <div style="font-size:21px;font-weight:900;line-height:1.35">이메일을<br>알려 주세요</div>
+        <div style="font-size:13px;color:var(--tl);margin-top:6px">로그인하면 찜·반려견 정보가 저장돼요.</div>
+        <div class="input" style="margin-top:22px;height:56px;font-size:16px">you@example.com</div>
+        <div class="btn">다음</div>
+        <div class="center" style="margin-top:16px"><span class="chip">처음이에요 · 회원가입</span></div>
+        <div style="margin-top:46px" class="dis">카카오로 시작하기 (준비 중)</div>
+        <div class="dis">Google로 시작하기 (준비 중)</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

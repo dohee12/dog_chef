@@ -6,10 +6,11 @@ import React, { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { labelOf, STATUS_NAME } from "../logic/common";
 import { josa } from "../logic/josa";
-import { bump, D, goStatus, J, pet, SEED, showToast, state, switchPet, type Pet, type Status } from "../store";
+import { auth, bump, D, goStatus, J, pet, requireLogin, SEED, showToast, state, switchPet, type Pet, type Status } from "../store";
 import { Avatar, Bold, C, Fold, Icon, Lvl, SrcChips, Txt } from "../ui/base";
 import { s as ds } from "./Detail";
 import { s as fs } from "./Add";
+import { signOut } from "../lib/auth";
 
 // 서버(Supabase)에서도 같은 범위를 CHECK 제약으로 막는다: 이름 1~20자, 몸무게 0.5~100kg, 나이 0~30살
 const LIMITS: Record<string, [number, number, string]> = { weight: [0.5, 100, "kg"], age: [0, 30, "살"] };
@@ -38,7 +39,8 @@ export function PetScreen({ onWizard }: { onWizard: () => void }) {
   const risks = J.petRisks(p);
   const bs = D.breed_sensitivities.filter((b: any) => b.breeds_ko.some((x: string) => p.breed && (p.breed.includes(x) || x.includes(p.breed))));
   const breedEv = [...risks.flatMap((h: any) => h.evidence || []), ...bs.flatMap((b: any) => b.evidence || [])];
-  const open = (t: "basic" | "allergy" | "health") => { state.petSheet = t; bump(); };
+  const open = (t: "basic" | "allergy" | "health") => requireLogin(() => { state.petSheet = t; bump(); }, "반려견 정보는 계정에 저장돼서 다른 기기에서도 볼 수 있어요.");
+  const addPet = () => requireLogin(onWizard, "반려견 정보는 계정에 저장돼서 다른 기기에서도 볼 수 있어요.");
   const STAT: [Status, string, string][] = [["ok", C.safetyBg, C.safety], ["caution", C.cautionBg, C.caution], ["no", C.dangerBg, C.danger], ["unknown", "#EEF1F4", C.gray]];
 
   return (
@@ -56,7 +58,7 @@ export function PetScreen({ onWizard }: { onWizard: () => void }) {
             </Pressable>
           );
         })}
-        <Pressable onPress={onWizard} style={s.psItem}>
+        <Pressable onPress={addPet} style={s.psItem}>
           <View style={[s.psAv, s.psAdd]}><Icon name="add" size={22} color={C.textLight} /></View>
           <Txt style={{ fontSize: 12.5, fontWeight: "700", color: C.textLight }}>추가</Txt>
         </Pressable>
@@ -148,6 +150,30 @@ export function PetScreen({ onWizard }: { onWizard: () => void }) {
           <SrcChips ev={breedEv} />
         </Fold>
       ) : null}
+      <AccountBox />
+    </View>
+  );
+}
+
+// ---------- 계정 (로그인 상태 · 로그아웃) ----------
+function AccountBox() {
+  const u = auth.user;
+  return (
+    <View style={[s.box, { flexDirection: "row", alignItems: "center", gap: 10, marginTop: 6 }]}>
+      <Icon name="person-circle-outline" size={26} color={C.primaryDark} />
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <Txt style={{ fontSize: 13.5, fontWeight: "800" }} numberOfLines={1}>{u ? u.email || "로그인됨" : "로그인하지 않았어요"}</Txt>
+        <Txt style={{ fontSize: 12, color: C.textLight, marginTop: 2 }} lh={1.4}>{u ? "찜·반려견 정보가 이 계정에 저장돼요." : "레시피는 그냥 볼 수 있어요. 저장할 때만 로그인해요."}</Txt>
+      </View>
+      {u ? (
+        <Pressable onPress={signOut} style={[s.edit, { minHeight: 40 }]} accessibilityRole="button">
+          <Txt style={{ fontSize: 13, fontWeight: "800", color: C.primaryDark }}>로그아웃</Txt>
+        </Pressable>
+      ) : (
+        <Pressable onPress={() => requireLogin(() => {})} style={[s.edit, { minHeight: 40 }]} accessibilityRole="button">
+          <Txt style={{ fontSize: 13, fontWeight: "800", color: C.primaryDark }}>로그인</Txt>
+        </Pressable>
+      )}
     </View>
   );
 }

@@ -7,7 +7,7 @@ import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { CATS, LV, SEASON, suggestMain } from "../logic/common";
-import { J, pet, showToast } from "../store";
+import { J, pet, requireLogin, showToast } from "../store";
 import { Bold, C, Icon, Lvl, shadow, Txt } from "../ui/base";
 import { StepItem } from "./Detail";
 
@@ -146,7 +146,7 @@ export function AddScreen() {
             <Txt style={{ fontSize: 12, fontWeight: "700", color: C.danger }} lh={1.5}>⛔ {bad.map((b) => b.n).join(", ")}: 반려견에게 위험한 재료라 등록할 수 없어요. 빼고 다시 등록해 주세요.</Txt>
           </View>
         ) : null}
-        <Pressable onPress={submit} disabled={!!bad.length} style={[s.submit, !!bad.length && { backgroundColor: C.borderDark, shadowOpacity: 0, elevation: 0 }]}>
+        <Pressable onPress={() => requireLogin(submit, "등록한 레시피는 계정에 저장돼서 다른 보호자도 볼 수 있어요.")} disabled={!!bad.length} style={[s.submit, !!bad.length && { backgroundColor: C.borderDark, shadowOpacity: 0, elevation: 0 }]}>
           <Txt style={{ fontSize: 16, fontWeight: "800", color: bad.length ? "#52616D" : "white", textAlign: "center" }}>레시피 등록</Txt>
         </Pressable>
       </View>
