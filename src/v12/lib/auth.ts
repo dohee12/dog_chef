@@ -6,10 +6,21 @@ import { clearHistory } from "../logic/calc";
 import { openPasswordSheet, resetAccountData, setAuthUser, showToast } from "../store";
 import { PW_RULE_TEXT } from "./password";
 import { supabase } from "./supabase";
+import { cancelLoad, loadMine } from "./sync";
 
 const toUser = (u: User | null | undefined) => (u ? { id: u.id, email: u.email ?? null } : null);
 
 let started = false;
+// 지금 화면에 데이터를 불러온 사용자. 다른 사용자로 바뀌면(로그인) 내 데이터를 새로 불러온다.
+let loadedUid: string | null = null;
+function applySession(u: ReturnType<typeof toUser>) {
+  setAuthUser(u);
+  if (u && u.id !== loadedUid) {
+    loadedUid = u.id;
+    // onAuthStateChange 안에서 바로 Supabase 를 부르면 막힐 수 있어 한 박자 뒤에 부른다.
+    setTimeout(loadMine, 0);
+  }
+}
 export function initAuth() {
   if (started) return;
   started = true;
@@ -17,13 +28,16 @@ export function initAuth() {
     setAuthUser(null);
     return;
   }
-  supabase.auth.getSession().then(({ data }) => setAuthUser(toUser(data.session?.user)));
+  supabase.auth.getSession().then(({ data }) => applySession(toUser(data.session?.user)));
   supabase.auth.onAuthStateChange((event, session) => {
     if (event === "SIGNED_OUT") {
+      // 내 데이터를 화면에서 지우고 예시 반려견으로 돌아간다 (서버의 내 데이터는 그대로)
+      cancelLoad();
+      loadedUid = null;
       resetAccountData();
       clearHistory();
     }
-    setAuthUser(toUser(session?.user));
+    applySession(toUser(session?.user));
     // 재설정 메일의 링크로 돌아오면 Supabase 가 임시 세션을 만들고 이 이벤트를 보낸다 → 새 비밀번호 시트를 연다.
     if (event === "PASSWORD_RECOVERY") openPasswordSheet("recovery");
   });

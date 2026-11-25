@@ -6,7 +6,8 @@ import React from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { LV, uniq } from "../logic/common";
 import { josa } from "../logic/josa";
-import { D, J, pet, requireLogin, SEED, state, toggleFav, type Pet, type RecipeId } from "../store";
+import { toggleFav } from "../lib/sync";
+import { D, J, pet, requireLogin, SEED, state, type Pet, type RecipeId } from "../store";
 import { Bold, C, Icon, Lvl, Rich, SrcChips, Txt } from "../ui/base";
 import { RecipeVisual } from "./Home";
 

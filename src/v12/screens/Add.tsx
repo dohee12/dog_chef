@@ -7,7 +7,8 @@ import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { CATS, LV, SEASON, suggestMain } from "../logic/common";
-import { J, pet, requireLogin, showToast, type Recipe } from "../store";
+import { createRecipe } from "../lib/sync";
+import { J, pet, requireLogin, showTab, showToast } from "../store";
 import { Bold, C, Icon, Lvl, shadow, Txt } from "../ui/base";
 import { StepItem } from "./Detail";
 
@@ -32,14 +33,21 @@ export function AddScreen() {
     const r = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], quality: 0.8 });
     if (!r.canceled && r.assets[0]) setPhoto(r.assets[0].uri);
   };
-  const submit = () => {
+  const [saving, setSaving] = useState(false);
+  const submit = async () => {
+    if (saving) return;
     if (!title.trim()) { showToast("레시피 제목을 넣어 주세요."); return; }
     if (!ings.length) { showToast("재료를 하나 이상 넣어 주세요."); return; }
-    // 저장 연결 전: 화면에서 만드는 레시피 초안. 한 줄 소개는 recipes.description 칸(Recipe.desc)으로 간다.
-    const draft: Pick<Recipe, "title" | "desc" | "category" | "seasons" | "ingredients" | "steps" | "image"> = {
-      title: title.trim(), desc: desc.trim(), category: curCat ?? "", seasons, ingredients: ings, steps, image: photo,
-    };
-    showToast("레시피 등록은 아직 준비 중이에요. 지금은 저장되지 않아요.");
+    // 위험 재료 판정은 앱에서 한다 (서버 판정 submit-recipe Edge Function 은 아직 없음)
+    if (ings.some((x) => J.judgeIng(x).level === "danger")) { showToast("위험한 재료를 빼고 다시 등록해 주세요."); return; }
+    setSaving(true);
+    // 한 줄 소개는 recipes.description, 조리방법은 recipes.instructions 로 간다. 사진은 Storage 준비 전이라 저장하지 않는다.
+    const ok = await createRecipe({ title: title.trim(), desc: desc.trim(), category: curCat ?? "", seasons, ingredients: ings, steps });
+    setSaving(false);
+    if (!ok) return;
+    setTitle(""); setDesc(""); setIngs([]); setSteps([]); setIngIn(""); setStepIn(""); setCat(null); setCatTouched(false); setSeasons([]); setPhoto(null);
+    showToast(photo ? "레시피를 등록했어요. 사진 저장은 준비 중이라 대표 재료 그림으로 보여요." : "레시피를 등록했어요. 홈 맨 위에서 볼 수 있어요.");
+    showTab("home");
   };
 
   const sug = suggestMain(ings);
@@ -162,7 +170,7 @@ export function AddScreen() {
           </View>
         ) : null}
         <Pressable onPress={() => requireLogin(submit, "등록한 레시피는 계정에 저장돼서 다른 보호자도 볼 수 있어요.")} disabled={!!bad.length} style={[s.submit, !!bad.length && { backgroundColor: C.borderDark, shadowOpacity: 0, elevation: 0 }]}>
-          <Txt style={{ fontSize: 16, fontWeight: "800", color: bad.length ? "#52616D" : "white", textAlign: "center" }}>레시피 등록</Txt>
+          <Txt style={{ fontSize: 16, fontWeight: "800", color: bad.length ? "#52616D" : "white", textAlign: "center" }}>{saving ? "저장하는 중…" : "레시피 등록"}</Txt>
         </Pressable>
       </View>
     </View>

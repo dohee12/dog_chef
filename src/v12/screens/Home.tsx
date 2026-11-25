@@ -6,7 +6,8 @@ import { Image } from "expo-image";
 import React from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { blockReason, CATS, SEASON, SEASON_ICON, STATUS_NAME } from "../logic/common";
-import { bump, J, pet, requireLogin, SEED, state, toggleFav, type Pet, type Recipe, type RecipeId } from "../store";
+import { toggleFav } from "../lib/sync";
+import { auth, bump, J, pet, requireLogin, SEED, state, type Pet, type Recipe, type RecipeId } from "../store";
 import { C, Fold, Icon, Lvl, shadow, Txt } from "../ui/base";
 
 function StatusBadge({ j, p }: { j: any; p: Pet }) {
@@ -177,7 +178,9 @@ export function FavScreen({ onOpen }: { onOpen: (id: RecipeId) => void }) {
         <Txt style={{ fontSize: 24, fontWeight: "800" }}>
           찜한 레시피 <Txt style={{ fontSize: 14, color: C.textLight }}>{list.length}개</Txt>
         </Txt>
-        <Txt style={{ fontSize: 13.5, color: C.textLight, marginTop: 4 }}>배지는 지금 선택한 반려견 기준으로 다시 계산돼요.</Txt>
+        <Txt style={{ fontSize: 13.5, color: C.textLight, marginTop: 4 }} lh={1.5}>
+          {auth.user ? `${p.name}의 찜이에요. 찜은 반려견마다 따로 저장돼요.` : "배지는 지금 선택한 반려견 기준으로 다시 계산돼요."}
+        </Txt>
       </View>
       {list.length ? (
         list.map((r) => <RecipeCard key={r.id} r={r} j={J.judgeRecipe(r.ingredients, p)} p={p} onOpen={onOpen} />)

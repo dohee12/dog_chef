@@ -1,7 +1,9 @@
 // 먹었어요 계산기 (목업 v12.6 "그림으로 고르기"를 그대로 옮김)
 // 독성 수치는 근거 데이터(doses)와 Merck 초콜릿 표에서 가져온다. 근거 없는 기본값은 채우지 않는다.
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { bump, D, J, pet, showToast, state, type Pet } from "../store";
+import { deleteIntakeRemote, saveIntakeRemote, serverPetId } from "../lib/sync";
+import { supabase } from "../lib/supabase";
+import { auth, bump, D, history, J, pet, showToast, state, type HistoryItem, type Pet } from "../store";
 import { josa } from "./josa";
 
 export const tox = (id: string) => D.toxic_foods.find((t: any) => t.id === id);
@@ -287,18 +289,55 @@ export function subText(f: Food) {
 }
 
 // ---------- 먹은 기록 ----------
-export type HistoryItem = { key: string; icon: string; pet: string; w: number | string; what: string; num: string; ate: string; lv: number };
-export const history: HistoryItem[] = [];
+// 기록 목록(history)은 store 에 있다. 로그인했으면 Supabase intake_logs 에 저장한다(lib/sync).
+export { history, type HistoryItem };
 const savedKeys = new Set<string>();
+/** 먹은 시각: "n분 전" 이면 지금에서 빼고, 직접 넣은 "12:30" 이면 오늘 그 시각(미래면 어제). */
+function ateDate(): Date {
+  if (calc.ate !== "custom") return new Date(Date.now() - calc.ate * 60000);
+  const m = /(\d{1,2})\s*[:시]\s*(\d{1,2})?/.exec(calc.ateCustom);
+  const d = new Date();
+  if (!m) return d;
+  d.setHours(+m[1], m[2] ? +m[2] : 0, 0, 0);
+  if (d.getTime() > Date.now()) d.setDate(d.getDate() - 1);
+  return d;
+}
 export function saveIntake() {
   const f = CALC[calc.food!], p = calcPet(), r = computeCalc(calc, p), lv = r.level;
   if (!(lv >= 1 || lv === -2)) { showToast(lv === -1 ? "몸무게를 먼저 넣어 주세요." : r.need || "먹은 음식과 양을 먼저 골라 주세요."); return; }
   const key = [p.key, p.weight, calc.food, calc.sub, calc.cacao, calc.unitW, calc.mode, calc.item, calc.portion, calc.count, calc.grams, calc.unknownAmt, ateText()].join("|");
   if (savedKeys.has(key)) { showToast("이미 저장한 기록이에요."); return; }
+  const what = `${subText(f)} ${amountText(f)}`.trim();
+  const item: HistoryItem = { key, petKey: p.key, icon: f.icon, pet: p.name, w: p.weight, what, num: plain(r.num), ate: ateText(), lv };
+  if (!(supabase && auth.user)) {
+    savedKeys.add(key);
+    history.unshift(item);
+    showToast("먹은 기록을 남겼어요.");
+    return;
+  }
+  const petId = serverPetId(p.key);
+  if (petId === null) { showToast("반려견을 먼저 등록해 주세요. 기록은 반려견마다 저장돼요."); return; }
   savedKeys.add(key);
-  history.unshift({ key, icon: f.icon, pet: p.name, w: p.weight, what: `${subText(f)} ${amountText(f)}`, num: plain(r.num), ate: ateText(), lv });
-  showToast("먹은 기록을 남겼어요.");
+  // 칸 맞춤 (가정): 양은 화면 문장(what_text)으로 남기고, amount·amount_unit 칸은 비워 둔다.
+  saveIntakeRemote(item, {
+    pet_id: petId,
+    food: calc.food!,
+    food_sub: calc.sub !== null || calc.mode === "item" ? subText(f).slice(0, 100) : null,
+    cacao_pct: calc.cacao && calc.cacao > 0 && calc.cacao <= 100 ? calc.cacao : null,
+    amount_unknown: calc.unknownAmt,
+    what_text: (what || f.name).slice(0, 200),
+    calc_weight: +p.weight,
+    weight_temp: !!p.weightTemp,
+    calc_value: plain(r.num) || null,
+    level: lv,
+    ate_at: ateDate().toISOString(),
+  }).then((ok) => { if (!ok) savedKeys.delete(key); });
 }
 /** 로그아웃할 때 화면에 남은 먹은 기록을 비운다. */
 export function clearHistory() { history.length = 0; savedKeys.clear(); }
-export function delHistory(i: number) { savedKeys.delete(history[i].key); history.splice(i, 1); bump(); }
+export function delHistory(i: number) {
+  const h = history[i];
+  if (!h) return;
+  savedKeys.delete(h.key);
+  deleteIntakeRemote(i);
+}

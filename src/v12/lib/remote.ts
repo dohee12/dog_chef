@@ -2,7 +2,7 @@
 // 기존 recipes 테이블 칸 이름이 v12 화면과 달라서 여기서 맞춰 준다.
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CATS, suggestMain } from "../logic/common";
-import { bump, SEED, state, type Recipe } from "../store";
+import { auth, bump, SEED, state, type Recipe } from "../store";
 import { supabase } from "./supabase";
 
 const CAT_KEYS = CATS.map((c) => c[0]);
@@ -46,8 +46,8 @@ export async function loadRecipes() {
     return;
   }
   SEED.recipes = data.map(toRecipe);
-  // 예시 데이터의 찜(id 2, 8)은 서버 레시피와 맞지 않으니 비운다. 찜 저장은 2단계에서 연결한다.
-  state.favs.clear();
+  // 예시 데이터의 찜(id 2, 8)은 서버 레시피와 맞지 않으니 비운다. 로그인했으면 내 찜(lib/sync)을 그대로 둔다.
+  if (!auth.user) state.favs = new Set();
   state.detailId = null;
   state.recipeSource = "supabase";
   bump();
