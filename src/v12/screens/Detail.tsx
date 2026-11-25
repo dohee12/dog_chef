@@ -6,7 +6,7 @@ import React from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { LV, uniq } from "../logic/common";
 import { josa } from "../logic/josa";
-import { D, J, pet, requireLogin, SEED, state, toggleFav, type Pet } from "../store";
+import { D, J, pet, requireLogin, SEED, state, toggleFav, type Pet, type RecipeId } from "../store";
 import { Bold, C, Icon, Lvl, Rich, SrcChips, Txt } from "../ui/base";
 import { RecipeVisual } from "./Home";
 
@@ -68,7 +68,7 @@ function Tip({ icon, warn, children }: { icon: string; warn?: boolean; children:
   );
 }
 
-export function DetailOverlay({ id, onClose }: { id: number; onClose: () => void }) {
+export function DetailOverlay({ id, onClose }: { id: RecipeId; onClose: () => void }) {
   const r = SEED.recipes.find((x) => x.id === id)!, p = pet(), j = J.judgeRecipe(r.ingredients, p);
   const head = { ok: `✓ ${p.name}에게 괜찮은 레시피예요 (재료별 조건을 지켜 주세요)`, caution: `⚠️ ${p.name}에게 줄 때 주의할 점이 있어요`, no: `🚫 ${p.name}에게는 주지 마세요`, unknown: "❔ 확인 안 된 재료가 있어요" }[j.status];
   const blocked = new Set(j.blocks.map((b: any) => b.ing));

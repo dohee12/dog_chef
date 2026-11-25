@@ -4,6 +4,7 @@
 import React from "react";
 import { Animated, Platform, Pressable, ScrollView, StyleSheet, useWindowDimensions, View, type NativeScrollEvent, type NativeSyntheticEvent } from "react-native";
 import { SafeAreaProvider, useSafeAreaInsets } from "react-native-safe-area-context";
+import { loadRecipes } from "./lib/remote";
 import { SEASON } from "./logic/common";
 import { AddScreen } from "./screens/Add";
 import { CalcScreen } from "./screens/Calc";
@@ -14,7 +15,7 @@ import { LoginSheet } from "./screens/Login";
 import { NewPasswordSheet } from "./screens/NewPassword";
 import { PetScreen, PetSheet, Wizard } from "./screens/Pet";
 import { initAuth } from "./lib/auth";
-import { auth, bump, D, openPasswordSheet, pet, SEED, setSeason, showTab, state, switchPet, toggleBigText, useStore, type Season, type Tab } from "./store";
+import { auth, bump, D, openPasswordSheet, pet, SEED, setSeason, showTab, state, switchPet, toggleBigText, useStore, type RecipeId, type Season, type Tab } from "./store";
 import { Avatar, Bold, C, Icon, ScaleCtx, shadow, Txt } from "./ui/base";
 
 const TABS: [Tab, string, string][] = [
@@ -131,7 +132,7 @@ function Frame() {
   const [wiz, setWiz] = React.useState(false);
   const fab = useFabHiddenOnScroll(state.tab);
   const scale = state.bigText ? 1.18 : 1;
-  const open = (id: number) => { state.detailId = id; bump(); };
+  const open = (id: RecipeId) => { state.detailId = id; bump(); };
   // 먹었어요(계산)는 자체 화면이 있고, 등록은 입력 칸·버튼이 화면 오른쪽 아래까지 차서 버튼을 두지 않는다.
   const showFab = state.tab !== "calc" && state.tab !== "add";
   return (
@@ -149,7 +150,7 @@ function Frame() {
         </View>
         {showFab ? <ChefFab hidden={fab.hidden} /> : null}
         {state.chatOpen ? <ChatModal /> : null}
-        {state.detailId !== null ? <DetailOverlay id={state.detailId} onClose={() => { state.detailId = null; bump(); }} /> : null}
+        {state.detailId !== null && SEED.recipes.some((x) => x.id === state.detailId) ? <DetailOverlay id={state.detailId} onClose={() => { state.detailId = null; bump(); }} /> : null}
         {wiz ? <Wizard onClose={() => setWiz(false)} /> : null}
         {state.petSheet ? <PetSheet /> : null}
         {state.source ? <SourceSheet /> : null}
@@ -258,6 +259,7 @@ function Shell() {
 export default function V12App() {
   React.useEffect(() => {
     initAuth();
+    loadRecipes();
     // 개발 중 화면 확인용: 웹 주소에 ?pwsheet=recovery 또는 ?pwsheet=change 를 붙이면 새 비밀번호 시트를 바로 연다.
     // 실제 비밀번호 변경은 로그인 세션이 있어야 되고, 배포 빌드(__DEV__ false)에서는 이 코드가 동작하지 않는다.
     if (__DEV__ && Platform.OS === "web" && typeof window !== "undefined") {

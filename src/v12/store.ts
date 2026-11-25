@@ -21,8 +21,9 @@ export type Pet = {
   lactose_sensitive?: boolean;
   img: string | null;
 };
+export type RecipeId = number | string;
 export type Recipe = {
-  id: number;
+  id: RecipeId;
   title: string;
   category: string;
   desc: string;
@@ -44,7 +45,7 @@ export type Tab = "home" | "fav" | "add" | "calc" | "pet";
 export type Status = "ok" | "caution" | "no" | "unknown";
 
 export const state = {
-  favs: new Set<number>([2, 8]),
+  favs: new Set<RecipeId>([2, 8]),
   season: seasonOf(new Date().getMonth() + 1),
   pet: SEED.pets[0].key,
   cat: "all",
@@ -54,12 +55,14 @@ export const state = {
   tab: "home" as Tab,
   bigText: false,
   chatOpen: false,
-  detailId: null as number | null,
+  detailId: null as RecipeId | null,
   petSheet: null as null | "basic" | "allergy" | "health",
   source: null as null | { sid: string; quotes: string[]; ctx?: string },
   toast: "",
   // 먹었어요 화면을 맨 위로 올려야 할 때 1씩 올린다
   calcScrollTop: 0,
+  // 레시피를 어디서 가져왔나: 불러오는 중 / 예시 데이터(.env 없음) / Supabase / 연결 실패(예시 데이터로 보임)
+  recipeSource: "loading" as "loading" | "seed" | "supabase" | "error",
 };
 export const pet = () => SEED.pets.find((p) => p.key === state.pet)!;
 
@@ -99,7 +102,7 @@ export function switchPet(k: string) {
   state.pet = k;
   bump();
 }
-export function toggleFav(id: number) {
+export function toggleFav(id: RecipeId) {
   if (state.favs.has(id)) state.favs.delete(id);
   else state.favs.add(id);
   bump();
