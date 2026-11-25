@@ -6,7 +6,8 @@ import React from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { LV, uniq } from "../logic/common";
 import { josa } from "../logic/josa";
-import { D, J, pet, SEED, state, toggleFav, type Pet, type RecipeId } from "../store";
+import { toggleFav } from "../lib/sync";
+import { D, J, pet, requireLogin, SEED, state, type Pet, type RecipeId } from "../store";
 import { Bold, C, Icon, Lvl, Rich, SrcChips, Txt } from "../ui/base";
 import { RecipeVisual } from "./Home";
 
@@ -90,7 +91,7 @@ export function DetailOverlay({ id, onClose }: { id: RecipeId; onClose: () => vo
           <Icon name="chevron-down" size={18} />
         </Pressable>
         <Txt style={{ fontSize: 15.5, fontWeight: "800", flex: 1 }} numberOfLines={1}>{r.title}</Txt>
-        <Pressable onPress={() => toggleFav(r.id)} style={s.fav} accessibilityLabel="찜" accessibilityState={{ selected: fav }}>
+        <Pressable onPress={() => requireLogin(() => toggleFav(r.id), "찜한 레시피는 계정에 저장돼서 다른 기기에서도 볼 수 있어요.")} style={s.fav} accessibilityLabel="찜" accessibilityState={{ selected: fav }}>
           <Icon name={fav ? "heart" : "heart-outline"} size={22} color={fav ? "#E5484D" : C.textLight} />
         </Pressable>
       </View>

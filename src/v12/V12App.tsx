@@ -11,8 +11,11 @@ import { CalcScreen } from "./screens/Calc";
 import { ChatModal, SourceSheet } from "./screens/Chat";
 import { DetailOverlay } from "./screens/Detail";
 import { FavScreen, HomeScreen } from "./screens/Home";
+import { LoginSheet } from "./screens/Login";
+import { NewPasswordSheet } from "./screens/NewPassword";
 import { PetScreen, PetSheet, Wizard } from "./screens/Pet";
-import { bump, D, pet, SEED, setSeason, showTab, state, switchPet, toggleBigText, useStore, type RecipeId, type Season, type Tab } from "./store";
+import { initAuth } from "./lib/auth";
+import { auth, bump, D, hasPet, openPasswordSheet, pet, SEED, setSeason, showTab, state, switchPet, toggleBigText, useStore, type RecipeId, type Season, type Tab } from "./store";
 import { Avatar, Bold, C, Icon, ScaleCtx, shadow, Txt } from "./ui/base";
 
 const TABS: [Tab, string, string][] = [
@@ -52,7 +55,7 @@ function Header() {
               })
             : null}
           <Txt style={{ fontSize: 11, fontWeight: "800", color: C.primaryDark, marginLeft: 2 }} numberOfLines={1}>
-            {narrow ? p.name : `${p.name} (${p.weight}kg)`}
+            {!hasPet() ? "반려견 등록 전" : narrow ? p.name : `${p.name} (${p.weight}kg)`}
           </Txt>
         </View>
       </View>
@@ -65,9 +68,10 @@ function TabBar() {
     <View style={s.tabbar}>
       {TABS.map(([k, ic, lb]) => {
         const on = state.tab === k;
+        // 가운데 + 는 탭 막대 위로 조금만(6px) 올린다: 많이 튀어나오면 등록 화면의 "레시피 등록" 버튼을 가린다.
         if (k === "add")
           return (
-            <Pressable key={k} onPress={() => showTab(k)} style={[s.tab, { top: -14 }]} accessibilityLabel={lb}>
+            <Pressable key={k} onPress={() => showTab(k)} style={[s.tab, { top: -6 }]} accessibilityLabel={lb}>
               <View style={[s.center, on && { backgroundColor: C.primaryDark }]}><Icon name="add" size={28} color="white" /></View>
               <Txt style={{ fontSize: 10.5, fontWeight: "700", color: on ? C.primary : C.textLight, marginTop: -1 }}>{lb}</Txt>
             </Pressable>
@@ -102,7 +106,9 @@ function ChefFab({ hidden }: { hidden: boolean }) {
 
 // 아래로 스크롤하는 동안 버튼을 숨기고, 위로 올리거나 스크롤을 멈추면 다시 보인다.
 // 버튼이 그 자리에 온 '재료 넣기(+)'·찜 하트 같은 버튼을 가리지 않게 하려는 것.
+// 화면 끝 근처(마지막 220px)에서는 계속 숨긴다: 맨 아래의 로그아웃 버튼·마지막 카드 하트를 가리지 않게.
 const FAB_SHOW_AFTER_IDLE = 700;
+const FAB_HIDE_NEAR_END = 220;
 function useFabHiddenOnScroll(tab: Tab) {
   const [hidden, setHidden] = React.useState(false);
   const lastY = React.useRef(0);
@@ -113,7 +119,14 @@ function useFabHiddenOnScroll(tab: Tab) {
   }, [tab]);
   React.useEffect(() => () => { if (idle.current) clearTimeout(idle.current); }, []);
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
-    const y = e.nativeEvent.contentOffset.y;
+    const { contentOffset, layoutMeasurement: lm, contentSize: cs } = e.nativeEvent;
+    const y = contentOffset.y;
+    if (cs.height > lm.height && y + lm.height >= cs.height - FAB_HIDE_NEAR_END) {
+      setHidden(true);
+      lastY.current = y;
+      if (idle.current) clearTimeout(idle.current);
+      return;
+    }
     const dy = y - lastY.current;
     lastY.current = y;
     if (dy > 4 && y > 8) setHidden(true);
@@ -149,8 +162,10 @@ function Frame() {
         {state.chatOpen ? <ChatModal /> : null}
         {state.detailId !== null && SEED.recipes.some((x) => x.id === state.detailId) ? <DetailOverlay id={state.detailId} onClose={() => { state.detailId = null; bump(); }} /> : null}
         {wiz ? <Wizard onClose={() => setWiz(false)} /> : null}
-        {state.petSheet ? <PetSheet /> : null}
+        {state.petSheet && hasPet() ? <PetSheet key={state.pet} /> : null}
         {state.source ? <SourceSheet /> : null}
+        {auth.sheet ? <LoginSheet /> : null}
+        {auth.pwSheet ? <NewPasswordSheet /> : null}
       </ScaleCtx.Provider>
       {state.toast ? (
         <View style={s.toastWrap} pointerEvents="none">
@@ -252,7 +267,16 @@ function Shell() {
 }
 
 export default function V12App() {
-  React.useEffect(() => { loadRecipes(); }, []);
+  React.useEffect(() => {
+    initAuth();
+    loadRecipes();
+    // 개발 중 화면 확인용: 웹 주소에 ?pwsheet=recovery 또는 ?pwsheet=change 를 붙이면 새 비밀번호 시트를 바로 연다.
+    // 실제 비밀번호 변경은 로그인 세션이 있어야 되고, 배포 빌드(__DEV__ false)에서는 이 코드가 동작하지 않는다.
+    if (__DEV__ && Platform.OS === "web" && typeof window !== "undefined") {
+      const k = new URLSearchParams(window.location.search).get("pwsheet");
+      if (k === "recovery" || k === "change") openPasswordSheet(k);
+    }
+  }, []);
   return (
     <SafeAreaProvider>
       <Shell />

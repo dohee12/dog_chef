@@ -6,7 +6,8 @@ import { Image } from "expo-image";
 import React from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { blockReason, CATS, SEASON, SEASON_ICON, STATUS_NAME } from "../logic/common";
-import { bump, J, pet, SEED, state, toggleFav, type Pet, type Recipe, type RecipeId } from "../store";
+import { toggleFav } from "../lib/sync";
+import { auth, bump, J, pet, requireLogin, SEED, state, type Pet, type Recipe, type RecipeId } from "../store";
 import { C, Fold, Icon, Lvl, shadow, Txt } from "../ui/base";
 
 function StatusBadge({ j, p }: { j: any; p: Pet }) {
@@ -35,7 +36,7 @@ export function RecipeCard({ r, j, p, onOpen }: { r: Recipe; j: any; p: Pet; onO
     <Pressable onPress={() => onOpen(r.id)} style={[s.card, j.status === "no" && { opacity: 0.62 }]}>
       <View style={{ height: 160 }}>
         <RecipeVisual r={r} height={160} />
-        <Pressable onPress={() => toggleFav(r.id)} style={s.heart} accessibilityLabel="찜" accessibilityState={{ selected: fav }}>
+        <Pressable onPress={() => requireLogin(() => toggleFav(r.id), "찜한 레시피는 계정에 저장돼서 다른 기기에서도 볼 수 있어요.")} style={s.heart} accessibilityLabel="찜" accessibilityState={{ selected: fav }}>
           <Icon name={fav ? "heart" : "heart-outline"} size={19} color={fav ? "#E5484D" : C.textLight} />
         </Pressable>
       </View>
@@ -177,7 +178,9 @@ export function FavScreen({ onOpen }: { onOpen: (id: RecipeId) => void }) {
         <Txt style={{ fontSize: 24, fontWeight: "800" }}>
           찜한 레시피 <Txt style={{ fontSize: 14, color: C.textLight }}>{list.length}개</Txt>
         </Txt>
-        <Txt style={{ fontSize: 13.5, color: C.textLight, marginTop: 4 }}>배지는 지금 선택한 반려견 기준으로 다시 계산돼요.</Txt>
+        <Txt style={{ fontSize: 13.5, color: C.textLight, marginTop: 4 }} lh={1.5}>
+          {auth.user ? `${p.name}의 찜이에요. 찜은 반려견마다 따로 저장돼요.` : "배지는 지금 선택한 반려견 기준으로 다시 계산돼요."}
+        </Txt>
       </View>
       {list.length ? (
         list.map((r) => <RecipeCard key={r.id} r={r} j={J.judgeRecipe(r.ingredients, p)} p={p} onOpen={onOpen} />)
