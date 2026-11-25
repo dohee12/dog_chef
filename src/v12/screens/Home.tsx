@@ -6,7 +6,8 @@ import { Image } from "expo-image";
 import React from "react";
 import { Pressable, StyleSheet, TextInput, View } from "react-native";
 import { blockReason, CATS, SEASON, SEASON_ICON, STATUS_NAME } from "../logic/common";
-import { bump, J, pet, SEED, state, toggleFav, type Pet, type Recipe } from "../store";
+import { toggleFav } from "../lib/sync";
+import { auth, bump, J, pet, requireLogin, SEED, state, type Pet, type Recipe, type RecipeId } from "../store";
 import { C, Fold, Icon, Lvl, shadow, Txt } from "../ui/base";
 
 function StatusBadge({ j, p }: { j: any; p: Pet }) {
@@ -24,18 +25,18 @@ export function RecipeVisual({ r, height }: { r: Recipe; height: number }) {
   return (
     <View style={{ height, alignItems: "center", justifyContent: "center", gap: 6, backgroundColor: "#D8E7EF" }}>
       <Icon name={c[1]} size={44} color={C.primary} />
-      <Txt style={{ fontSize: 12, fontWeight: "700", color: C.textLight }}>{c[2]} 레시피 · 사진 예시 없음</Txt>
+      <Txt style={{ fontSize: 12, fontWeight: "700", color: C.textLight }}>{c[2]}</Txt>
     </View>
   );
 }
 
-export function RecipeCard({ r, j, p, onOpen }: { r: Recipe; j: any; p: Pet; onOpen: (id: number) => void }) {
+export function RecipeCard({ r, j, p, onOpen }: { r: Recipe; j: any; p: Pet; onOpen: (id: RecipeId) => void }) {
   const fav = state.favs.has(r.id);
   return (
     <Pressable onPress={() => onOpen(r.id)} style={[s.card, j.status === "no" && { opacity: 0.62 }]}>
       <View style={{ height: 160 }}>
         <RecipeVisual r={r} height={160} />
-        <Pressable onPress={() => toggleFav(r.id)} style={s.heart} accessibilityLabel="찜" accessibilityState={{ selected: fav }}>
+        <Pressable onPress={() => requireLogin(() => toggleFav(r.id), "찜한 레시피는 계정에 저장돼서 다른 기기에서도 볼 수 있어요.")} style={s.heart} accessibilityLabel="찜" accessibilityState={{ selected: fav }}>
           <Icon name={fav ? "heart" : "heart-outline"} size={19} color={fav ? "#E5484D" : C.textLight} />
         </Pressable>
       </View>
@@ -64,7 +65,7 @@ export function RecipeCard({ r, j, p, onOpen }: { r: Recipe; j: any; p: Pet; onO
   );
 }
 
-export function HomeScreen({ onOpen }: { onOpen: (id: number) => void }) {
+export function HomeScreen({ onOpen }: { onOpen: (id: RecipeId) => void }) {
   const p = pet();
   const seasonChip: [string, string, string] = ["season", SEASON_ICON[state.season], state.season + " 추천"];
   const chips: [string, string, string][] = [["all", "apps-outline", "전체"], ...CATS, seasonChip];
@@ -83,6 +84,9 @@ export function HomeScreen({ onOpen }: { onOpen: (id: number) => void }) {
 
   return (
     <View>
+      {state.recipeSource === "error" ? (
+        <Txt style={{ fontSize: 12, color: C.textLight, marginBottom: 8 }} lh={1.5}>서버에 연결하지 못해 예시 레시피를 보여 드려요.</Txt>
+      ) : null}
       <View style={s.search}>
         <Icon name="search" size={18} color={C.textLight} />
         <TextInput
@@ -111,7 +115,7 @@ export function HomeScreen({ onOpen }: { onOpen: (id: number) => void }) {
           const bg = on ? (season ? "#A4520A" : C.primary) : season ? "#FFF3E3" : C.lightBg;
           const fg = on ? "white" : season ? "#9A4A06" : C.textLight;
           return (
-            <Pressable key={k} onPress={() => { state.cat = k; bump(); }} style={[s.catChip, { backgroundColor: bg }]}>
+            <Pressable key={k} onPress={() => { state.cat = k; bump(); }} style={[s.catChip, { backgroundColor: bg }, state.bigText && { width: "31%" }]}>
               <Icon name={ic} size={15} color={on ? "white" : season ? "#C2620A" : C.primary} />
               <Txt style={{ fontSize: 12, fontWeight: "700", color: fg, letterSpacing: -0.3 }} numberOfLines={1}>
                 {lb}
@@ -166,7 +170,7 @@ export function HomeScreen({ onOpen }: { onOpen: (id: number) => void }) {
   );
 }
 
-export function FavScreen({ onOpen }: { onOpen: (id: number) => void }) {
+export function FavScreen({ onOpen }: { onOpen: (id: RecipeId) => void }) {
   const p = pet(), list = SEED.recipes.filter((r) => state.favs.has(r.id));
   return (
     <View>
@@ -174,7 +178,9 @@ export function FavScreen({ onOpen }: { onOpen: (id: number) => void }) {
         <Txt style={{ fontSize: 24, fontWeight: "800" }}>
           찜한 레시피 <Txt style={{ fontSize: 14, color: C.textLight }}>{list.length}개</Txt>
         </Txt>
-        <Txt style={{ fontSize: 13.5, color: C.textLight, marginTop: 4 }}>배지는 지금 선택한 반려견 기준으로 다시 계산돼요.</Txt>
+        <Txt style={{ fontSize: 13.5, color: C.textLight, marginTop: 4 }} lh={1.5}>
+          {auth.user ? `${p.name}의 찜이에요. 찜은 반려견마다 따로 저장돼요.` : "배지는 지금 선택한 반려견 기준으로 다시 계산돼요."}
+        </Txt>
       </View>
       {list.length ? (
         list.map((r) => <RecipeCard key={r.id} r={r} j={J.judgeRecipe(r.ingredients, p)} p={p} onOpen={onOpen} />)

@@ -22,6 +22,10 @@
       "predictiveBackGestureEnabled": false
     },
     "web": {
+      "name": "멍슐랭",
+      "lang": "ko",
+      "description": "우리 강아지에게 맞는 수제 간식·화식 레시피를 근거 자료로 확인해요.",
+      "themeColor": "#1D5C7A",
       "output": "single",
       "favicon": "./assets/images/favicon.png"
     },

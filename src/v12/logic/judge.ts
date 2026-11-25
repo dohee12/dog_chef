@@ -1,6 +1,7 @@
 // 근거 데이터(dog-food-evidence.json)로 재료·레시피를 판정한다.
 // 목업 v12 의 judge.js 를 그대로 옮겼다. 서버(Supabase Edge Function) 엔진의 원형이다.
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { josa } from "./josa";
 export type Judge = ReturnType<typeof makeJudge>;
 
 export function makeJudge(D: any) {
@@ -107,7 +108,7 @@ export function makeJudge(D: any) {
             src: hc,
             text:
               (byBreed
-                ? `${pet.breed}는 ${hc.label.split(" (")[0]}에 잘 걸리는 품종이에요. `
+                ? `${josa(pet.breed, "은/는")} ${hc.label.split(" (")[0]}에 잘 걸리는 품종이에요. `
                 : hc.label.split(" (")[0] + ": ") + hc.message,
           });
       }

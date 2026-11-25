@@ -5,7 +5,9 @@
 import React from "react";
 import { Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { LV, uniq } from "../logic/common";
-import { D, J, pet, SEED, state, toggleFav, type Pet } from "../store";
+import { josa } from "../logic/josa";
+import { toggleFav } from "../lib/sync";
+import { D, J, pet, requireLogin, SEED, state, type Pet, type RecipeId } from "../store";
 import { Bold, C, Icon, Lvl, Rich, SrcChips, Txt } from "../ui/base";
 import { RecipeVisual } from "./Home";
 
@@ -67,7 +69,7 @@ function Tip({ icon, warn, children }: { icon: string; warn?: boolean; children:
   );
 }
 
-export function DetailOverlay({ id, onClose }: { id: number; onClose: () => void }) {
+export function DetailOverlay({ id, onClose }: { id: RecipeId; onClose: () => void }) {
   const r = SEED.recipes.find((x) => x.id === id)!, p = pet(), j = J.judgeRecipe(r.ingredients, p);
   const head = { ok: `✓ ${p.name}에게 괜찮은 레시피예요 (재료별 조건을 지켜 주세요)`, caution: `⚠️ ${p.name}에게 줄 때 주의할 점이 있어요`, no: `🚫 ${p.name}에게는 주지 마세요`, unknown: "❔ 확인 안 된 재료가 있어요" }[j.status];
   const blocked = new Set(j.blocks.map((b: any) => b.ing));
@@ -89,7 +91,7 @@ export function DetailOverlay({ id, onClose }: { id: number; onClose: () => void
           <Icon name="chevron-down" size={18} />
         </Pressable>
         <Txt style={{ fontSize: 15.5, fontWeight: "800", flex: 1 }} numberOfLines={1}>{r.title}</Txt>
-        <Pressable onPress={() => toggleFav(r.id)} style={s.fav} accessibilityLabel="찜" accessibilityState={{ selected: fav }}>
+        <Pressable onPress={() => requireLogin(() => toggleFav(r.id), "찜한 레시피는 계정에 저장돼서 다른 기기에서도 볼 수 있어요.")} style={s.fav} accessibilityLabel="찜" accessibilityState={{ selected: fav }}>
           <Icon name={fav ? "heart" : "heart-outline"} size={22} color={fav ? "#E5484D" : C.textLight} />
         </Pressable>
       </View>
@@ -109,7 +111,7 @@ export function DetailOverlay({ id, onClose }: { id: number; onClose: () => void
           <View style={s.sec}>
             <Tip icon="🐕">
               {risks.map((h: any) => (
-                <Txt key={h.id} style={s.tipTx} lh={1.5}>{p.breed}는 <Bold>{h.label.split(" (")[0]}</Bold>에 잘 걸리는 품종으로 알려져 있어요. 관련 재료에 주의를 붙였어요.</Txt>
+                <Txt key={h.id} style={s.tipTx} lh={1.5}>{josa(p.breed, "은/는")} <Bold>{h.label.split(" (")[0]}</Bold>에 잘 걸리는 품종으로 알려져 있어요. 관련 재료에 주의를 붙였어요.</Txt>
               ))}
               <SrcChips ev={risks.flatMap((h: any) => h.evidence || [])} ctx={risks.map((h: any) => h.message).join(" ")} />
             </Tip>
@@ -134,19 +136,20 @@ export function DetailOverlay({ id, onClose }: { id: number; onClose: () => void
             <Icon name="list" size={15} />
             <Txt style={{ fontSize: 13.5, fontWeight: "800" }}>재료별 판정 ({p.name} 기준)</Txt>
           </View>
+          <Txt style={s.ppNote} lh={1.5}>출처 앞 글자는 근거 수준이에요. A 논문·수의 매뉴얼·국가 기준, B 전문 기관·병원 자료, C 일반 기사. 출처를 누르면 원문을 볼 수 있어요.</Txt>
           {j.items.map((it: any, i: number) => <IngRow key={i} it={it} j={j} p={p} />)}
         </View>
         {r.steps.length ? (
           <View style={s.sec}>
             <View style={s.secTitle}>
               <Icon name="restaurant-outline" size={15} />
-              <Txt style={{ fontSize: 13.5, fontWeight: "800" }}>만드는 법 <Txt style={{ fontSize: 12, fontWeight: "400", color: C.textLight }}>(목업 예시)</Txt></Txt>
+              <Txt style={{ fontSize: 13.5, fontWeight: "800" }}>만드는 법</Txt>
             </View>
             {r.steps.map((st, i) => <StepItem key={i} n={i + 1} text={st} />)}
-            <Txt style={s.ppNote} lh={1.5}>하루 급여량은 아직 근거 데이터가 없어 보여 드리지 않아요. 영양 DB를 연결하면 몸무게별로 계산할 예정이에요.</Txt>
+            <Txt style={s.ppNote} lh={1.5}>하루 급여량은 근거 자료가 부족해 아직 안내하지 않아요. 몸무게·활동량에 맞는 양은 동물병원에 물어봐 주세요.</Txt>
           </View>
         ) : null}
-        <Rich style={{ fontSize: 12, color: C.textLight, paddingTop: 14, paddingHorizontal: 16 }} lh={1.5} s={`판정은 공개 논문·Merck 수의 매뉴얼·국립축산과학원 자료로 만든 근거 데이터(${D.meta.version})로 계산했어요. 수의사 감수 전 초안이며, 진료를 대신하지 않아요.`} />
+        <Rich style={{ fontSize: 12, color: C.textLight, paddingTop: 14, paddingHorizontal: 16 }} lh={1.5} s={`판정은 공개 논문·Merck 수의 매뉴얼·국립축산과학원 자료로 만든 근거 데이터로 계산했어요. 아직 수의사 감수를 받지 않았고, 진료를 대신하지 않아요.`} />
       </ScrollView>
     </View>
   );

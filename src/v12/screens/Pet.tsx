@@ -5,10 +5,13 @@
 import React, { useState } from "react";
 import { Pressable, ScrollView, StyleSheet, TextInput, View } from "react-native";
 import { labelOf, STATUS_NAME } from "../logic/common";
-import { bump, D, goStatus, J, pet, SEED, showToast, state, switchPet, type Pet, type Status } from "../store";
+import { josa } from "../logic/josa";
+import { auth, bump, D, goStatus, hasPet, J, openPasswordSheet, pet, requireLogin, SEED, showToast, state, switchPet, type Pet, type Status } from "../store";
 import { Avatar, Bold, C, Fold, Icon, Lvl, SrcChips, Txt } from "../ui/base";
 import { s as ds } from "./Detail";
 import { s as fs } from "./Add";
+import { signOut } from "../lib/auth";
+import { addPet, deletePet, savePetEdit } from "../lib/sync";
 
 // 서버(Supabase)에서도 같은 범위를 CHECK 제약으로 막는다: 이름 1~20자, 몸무게 0.5~100kg, 나이 0~30살
 const LIMITS: Record<string, [number, number, string]> = { weight: [0.5, 100, "kg"], age: [0, 30, "살"] };
@@ -37,8 +40,32 @@ export function PetScreen({ onWizard }: { onWizard: () => void }) {
   const risks = J.petRisks(p);
   const bs = D.breed_sensitivities.filter((b: any) => b.breeds_ko.some((x: string) => p.breed && (p.breed.includes(x) || x.includes(p.breed))));
   const breedEv = [...risks.flatMap((h: any) => h.evidence || []), ...bs.flatMap((b: any) => b.evidence || [])];
-  const open = (t: "basic" | "allergy" | "health") => { state.petSheet = t; bump(); };
+  const open = (t: "basic" | "allergy" | "health") => requireLogin(() => { state.petSheet = t; bump(); }, "반려견 정보는 계정에 저장돼서 다른 기기에서도 볼 수 있어요.");
+  const startAdd = () => requireLogin(onWizard, "반려견 정보는 계정에 저장돼서 다른 기기에서도 볼 수 있어요.");
   const STAT: [Status, string, string][] = [["ok", C.safetyBg, C.safety], ["caution", C.cautionBg, C.caution], ["no", C.dangerBg, C.danger], ["unknown", "#EEF1F4", C.gray]];
+
+  // 로그인했는데 등록한 반려견이 없을 때 (또는 불러오는 중)
+  if (!hasPet())
+    return (
+      <View>
+        <View style={[s.box, { alignItems: "center", paddingVertical: 24, gap: 8 }]}>
+          <Txt style={{ fontSize: 34 }}>🐶</Txt>
+          {auth.sync === "loading" ? (
+            <Txt style={{ fontSize: 14, fontWeight: "800" }}>내 반려견을 불러오는 중이에요…</Txt>
+          ) : (
+            <>
+              <Txt style={{ fontSize: 16, fontWeight: "900" }}>반려견을 등록해 주세요</Txt>
+              <Txt style={[s.text, { textAlign: "center", color: C.textLight }]} lh={1.5}>등록하면 알레르기·건강 상태에 맞춰 레시피를 골라 보여 드리고, 찜과 먹은 기록도 반려견마다 저장돼요.</Txt>
+              <Pressable onPress={startAdd} style={[s.edit, { backgroundColor: C.primary, marginTop: 6 }]} accessibilityRole="button">
+                <Icon name="add" size={18} color="white" />
+                <Txt style={{ fontSize: 14, fontWeight: "800", color: "white" }}>반려견 등록하기</Txt>
+              </Pressable>
+            </>
+          )}
+        </View>
+        <AccountBox />
+      </View>
+    );
 
   return (
     <View>
@@ -55,7 +82,7 @@ export function PetScreen({ onWizard }: { onWizard: () => void }) {
             </Pressable>
           );
         })}
-        <Pressable onPress={onWizard} style={s.psItem}>
+        <Pressable onPress={startAdd} style={s.psItem}>
           <View style={[s.psAv, s.psAdd]}><Icon name="add" size={22} color={C.textLight} /></View>
           <Txt style={{ fontSize: 12.5, fontWeight: "700", color: C.textLight }}>추가</Txt>
         </Pressable>
@@ -99,7 +126,7 @@ export function PetScreen({ onWizard }: { onWizard: () => void }) {
             <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 5, marginBottom: 6 }}>
               {al.map((x) => <Lvl key={x} kind="no">{x} 알레르기</Lvl>)}
             </View>
-            <Txt style={s.text} lh={1.55}>{al.join(", ")}가 든 레시피는 &quot;안 돼요&quot;로 표시하고, 맞춤 보기에서 숨겨요.</Txt>
+            <Txt style={s.text} lh={1.55}>{josa(al.join(", "), "이/가")} 든 레시피는 &quot;안 돼요&quot;로 표시하고, 맞춤 보기에서 숨겨요.</Txt>
             {cross.map((c: any, i: number) => <Txt key={i} style={s.text} lh={1.55}>🔁 {c.message}</Txt>)}
             {cross.length ? <SrcChips ev={cross.flatMap((c: any) => c.evidence || [])} /> : null}
           </>
@@ -137,7 +164,7 @@ export function PetScreen({ onWizard }: { onWizard: () => void }) {
           style={[s.box, { backgroundColor: "#FFFBF3", borderColor: "#F1D58F" }]}
           summary={(o) => (
             <View style={[s.boxHRow, { marginBottom: o ? 8 : 0, minHeight: 28 }]}>
-              <Txt style={[s.boxH, { marginBottom: 0, flex: 1 }]}>🐕 {p.breed}라 알아 두세요</Txt>
+              <Txt style={[s.boxH, { marginBottom: 0, flex: 1 }]}>🐕 {josa(p.breed, "이라/라")} 알아 두세요</Txt>
               <Txt style={{ fontSize: 12.5, fontWeight: "700", color: C.textLight }}>{risks.length + bs.length}개 {o ? "▴" : "▾"}</Txt>
             </View>
           )}
@@ -147,6 +174,48 @@ export function PetScreen({ onWizard }: { onWizard: () => void }) {
           <SrcChips ev={breedEv} />
         </Fold>
       ) : null}
+      <AccountBox />
+    </View>
+  );
+}
+
+// ---------- 계정 (로그인 상태 · 로그아웃) ----------
+function AccountBox() {
+  const u = auth.user;
+  // 버튼은 글 아래 왼쪽에 둔다. 오른쪽 아래에 떠 있는 AI 멍셰프 버튼에 가리지 않게.
+  return (
+    <View style={[s.box, { gap: 10, marginTop: 6 }]}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <Icon name="person-circle-outline" size={26} color={C.primaryDark} />
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Txt style={{ fontSize: 13.5, fontWeight: "800" }} numberOfLines={1}>{u ? u.email || "로그인됨" : "로그인하지 않았어요"}</Txt>
+          <Txt style={{ fontSize: 12, color: C.textLight, marginTop: 2 }} lh={1.4}>
+            {!u
+              ? "레시피는 그냥 볼 수 있어요. 저장할 때만 로그인해요."
+              : auth.sync === "error"
+                ? "저장된 정보를 불러오지 못했어요. 인터넷 연결을 확인하고 새로고침해 주세요."
+                : auth.sync === "loading"
+                  ? "내 정보를 불러오는 중이에요…"
+                  : "반려견·찜·먹은 기록이 이 계정에 저장돼요. 다른 기기에서 로그인해도 그대로 보여요."}
+          </Txt>
+        </View>
+      </View>
+      {u ? (
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          <Pressable onPress={() => openPasswordSheet("change")} style={[s.edit, { minHeight: 40 }]} accessibilityRole="button">
+            <Txt style={{ fontSize: 13, fontWeight: "800", color: C.primaryDark }}>비밀번호 바꾸기</Txt>
+          </Pressable>
+          <Pressable onPress={signOut} style={[s.edit, { minHeight: 40 }]} accessibilityRole="button">
+            <Txt style={{ fontSize: 13, fontWeight: "800", color: C.primaryDark }}>로그아웃</Txt>
+          </Pressable>
+        </View>
+      ) : (
+        <View style={{ flexDirection: "row" }}>
+          <Pressable onPress={() => requireLogin(() => {})} style={[s.edit, { minHeight: 40 }]} accessibilityRole="button">
+            <Txt style={{ fontSize: 13, fontWeight: "800", color: C.primaryDark }}>로그인</Txt>
+          </Pressable>
+        </View>
+      )}
     </View>
   );
 }
@@ -169,7 +238,7 @@ function AllergyChips({ p, onToggle }: { p: Pet; onToggle: (id: string) => void 
           {a.label}<Txt style={{ fontSize: 10, opacity: 0.75 }}> {a.pct}%</Txt>
         </ChipToggle>
       ))}
-      <ChipToggle big on={false} onPress={() => showToast("목업: 목록에 없는 알레르기 직접 입력")}>+ 직접 입력</ChipToggle>
+      <ChipToggle big on={false} onPress={() => showToast("목록에 없는 알레르기 직접 입력은 준비 중이에요.")}>+ 직접 입력</ChipToggle>
     </View>
   );
 }
@@ -208,6 +277,9 @@ function Field({ label, hint, value, onCommit, numeric, unit, placeholder }: { l
 }
 export function PetSheet() {
   const p = pet(), tab = state.petSheet!;
+  // 시트를 열 때의 값. 닫을 때 비교해서 바뀌었으면 서버에 저장하고, 실패하면 이 값으로 되돌린다.
+  const [before] = useState<Pet>(() => JSON.parse(JSON.stringify(p)));
+  const [delAsk, setDelAsk] = useState(false);
   const setField = (f: keyof Pet, v: string) => {
     const err = validField(f as string, v);
     if (err) { showToast(err); bump(); return; }
@@ -215,7 +287,11 @@ export function PetSheet() {
     bump();
   };
   const T: [typeof tab, string][] = [["basic", "기본 정보"], ["allergy", "알레르기"], ["health", "건강 상태"]];
-  const close = () => { state.petSheet = null; bump(); };
+  const close = () => { state.petSheet = null; bump(); savePetEdit(p, before); };
+  const del = () => {
+    if (!delAsk) { setDelAsk(true); return; }
+    deletePet(p.key);
+  };
   return (
     <Sheet onClose={close}>
       <View style={s.grab} />
@@ -237,6 +313,9 @@ export function PetSheet() {
             <Field label="몸무게" numeric unit="kg" value={String(p.weight)} onCommit={(v) => setField("weight", v)} />
           </View>
           <Txt style={[fs.ppNote, { marginTop: 6 }]} lh={1.5}>몸무게는 먹었어요 계산에 쓰여요. 최근에 잰 값을 넣어 주세요.</Txt>
+          <Pressable onPress={del} style={[s.delBtn, delAsk && { backgroundColor: C.dangerBg, borderColor: C.danger }]} accessibilityRole="button">
+            <Txt style={{ fontSize: 13, fontWeight: "800", color: C.danger }}>{delAsk ? `한 번 더 누르면 ${p.name} 정보와 찜·먹은 기록을 지워요` : "이 반려견 지우기"}</Txt>
+          </Pressable>
         </View>
       ) : tab === "allergy" ? (
         <View>
@@ -277,19 +356,31 @@ export function Wizard({ onClose }: { onClose: () => void }) {
   const [p, setP] = useState<WizPet>(() => ({ key: "new" + Date.now(), name: "", breed: "", age: "", weight: "", gender: "", allergies: [], conditions: [], lactose_sensitive: false, img: null }));
   const S = ["기본 정보", "알레르기", "건강 상태", "확인"];
   const nm = p.name || "우리 아이";
-  const up = (o: Partial<WizPet>) => setP({ ...p, ...o });
+  // 1단계 칸별 오류. 토스트는 금방 사라지므로, 고칠 때까지 칸 아래에 남겨 둔다.
+  const [errs, setErrs] = useState<{ name?: string; age?: string; weight?: string }>({});
+  const [saving, setSaving] = useState(false);
+  const up = (o: Partial<WizPet>) => {
+    setP({ ...p, ...o });
+    const changed = Object.keys(o).filter((k) => k in errs);
+    if (changed.length) setErrs((e) => { const n = { ...e }; changed.forEach((k) => delete (n as any)[k]); return n; });
+  };
   const tog = (f: "allergies" | "conditions", id: string) => up({ [f]: p[f].includes(id) ? p[f].filter((x) => x !== id) : [...p[f], id] } as any);
   const back = () => (step === 0 ? onClose() : setStep(step - 1));
   const next = (skip?: boolean) => {
     if (step === 0) {
-      const err = validField("name", p.name) || validField("weight", p.weight) || validField("age", p.age);
+      const fe = { name: validField("name", p.name), age: validField("age", p.age), weight: validField("weight", p.weight) };
+      const shown = Object.fromEntries(Object.entries(fe).filter(([, v]) => v));
+      setErrs(shown);
+      const err = fe.name || fe.weight || fe.age;
       if (err) { showToast(skip ? "이름·나이·몸무게는 건너뛸 수 없어요. " + err : err); return; }
     }
     if (step < 3) { setStep(step + 1); return; }
-    SEED.pets.push({ ...p, weight: +p.weight, age: +p.age });
-    state.pet = p.key;
-    onClose();
-    bump();
+    if (saving) return;
+    setSaving(true);
+    addPet({ ...p, name: p.name.trim(), weight: +p.weight, age: +p.age }).then((ok) => {
+      setSaving(false);
+      if (ok) onClose();
+    });
   };
   const risks = step === 3 ? J.petRisks(p) : [];
   return (
@@ -312,25 +403,28 @@ export function Wizard({ onClose }: { onClose: () => void }) {
           <View>
             <Txt style={s.wizQ} lh={1.35}>어떤 아이인가요?</Txt>
             <Txt style={fs.label}>이름</Txt>
-            <TextInput style={fs.input} placeholder="예: 초코" placeholderTextColor="#8A97A1" value={p.name} onChangeText={(v) => up({ name: v })} />
+            <TextInput style={[fs.input, errs.name ? s.inputErr : null]} placeholder="예: 초코" placeholderTextColor="#8A97A1" value={p.name} onChangeText={(v) => up({ name: v })} aria-invalid={!!errs.name} />
+            {errs.name ? <Txt style={s.fieldErr} lh={1.4}>{errs.name}</Txt> : null}
             <Txt style={[fs.label, { marginTop: 10 }]}>품종</Txt>
             <TextInput style={fs.input} placeholder="예: 말티즈, 진돗개" placeholderTextColor="#8A97A1" value={p.breed} onChangeText={(v) => up({ breed: v })} />
             <View style={{ flexDirection: "row", gap: 12, marginTop: 10 }}>
               <View style={{ flex: 1 }}>
                 <Txt style={fs.label}>나이</Txt>
-                <TextInput style={fs.input} keyboardType="number-pad" placeholder="예: 3" placeholderTextColor="#8A97A1" value={String(p.age)} onChangeText={(v) => up({ age: v })} />
+                <TextInput style={[fs.input, errs.age ? s.inputErr : null]} keyboardType="number-pad" placeholder="예: 3" placeholderTextColor="#8A97A1" value={String(p.age)} onChangeText={(v) => up({ age: v })} aria-invalid={!!errs.age} />
                 <Txt style={s.unit}>살</Txt>
+                {errs.age ? <Txt style={s.fieldErr} lh={1.4}>{errs.age}</Txt> : null}
               </View>
               <View style={{ flex: 1 }}>
                 <Txt style={fs.label}>몸무게</Txt>
-                <TextInput style={fs.input} keyboardType="decimal-pad" placeholder="예: 4.5" placeholderTextColor="#8A97A1" value={String(p.weight)} onChangeText={(v) => up({ weight: v })} />
+                <TextInput style={[fs.input, errs.weight ? s.inputErr : null]} keyboardType="decimal-pad" placeholder="예: 4.5" placeholderTextColor="#8A97A1" value={String(p.weight)} onChangeText={(v) => up({ weight: v })} aria-invalid={!!errs.weight} />
                 <Txt style={s.unit}>kg</Txt>
+                {errs.weight ? <Txt style={s.fieldErr} lh={1.4}>{errs.weight}</Txt> : null}
               </View>
             </View>
           </View>
         ) : step === 1 ? (
           <View>
-            <Txt style={s.wizQ} lh={1.35}>{nm}가 알레르기 진단을 받은 음식이 있나요?</Txt>
+            <Txt style={s.wizQ} lh={1.35}>{josa(nm, "이/가")} 알레르기 진단을 받은 음식이 있나요?</Txt>
             <Txt style={fs.ppNote} lh={1.5}>많이 보고된 순서예요. 없으면 &quot;다음&quot;을 눌러 주세요.</Txt>
             <View style={s.chipWrap}>
               {D.allergens.items.map((a: any) => (
@@ -365,7 +459,7 @@ export function Wizard({ onClose }: { onClose: () => void }) {
       </ScrollView>
       <View style={s.wizFoot}>
         <Pressable onPress={back} style={[s.wizBtn, { flex: 0.6, backgroundColor: C.lightBg }]}><Txt style={{ fontSize: 14, fontWeight: "800", color: C.primaryDark }}>이전</Txt></Pressable>
-        <Pressable onPress={() => next()} style={s.wizBtn}><Txt style={{ fontSize: 14, fontWeight: "800", color: "white" }}>{step === 3 ? "등록하기" : `다음 · ${S[step + 1]}`}</Txt></Pressable>
+        <Pressable onPress={() => next()} style={s.wizBtn}><Txt style={{ fontSize: 14, fontWeight: "800", color: "white" }}>{step === 3 ? (saving ? "저장하는 중…" : "등록하기") : `다음 · ${S[step + 1]}`}</Txt></Pressable>
       </View>
     </View>
   );
@@ -396,7 +490,10 @@ const s = StyleSheet.create({
   sheetClose: { width: "100%", marginTop: 8, padding: 11, borderRadius: 10, backgroundColor: C.lightBg, alignItems: "center", justifyContent: "center" },
   wizQ: { fontSize: 18, fontWeight: "900", marginBottom: 8 },
   unit: { position: "absolute", right: 14, top: 38, color: C.textLight, fontSize: 13, fontWeight: "600" },
+  inputErr: { borderColor: C.danger, backgroundColor: C.dangerBg },
+  fieldErr: { color: C.danger, fontSize: 12.5, fontWeight: "700", marginTop: 5 },
   wizFoot: { flexDirection: "row", gap: 8, paddingTop: 10, paddingHorizontal: 16, paddingBottom: 16, borderTopWidth: 1, borderTopColor: C.border, backgroundColor: "white" },
+  delBtn: { marginTop: 14, minHeight: 44, borderRadius: 10, borderWidth: 1, borderColor: C.dangerBorder, alignItems: "center", justifyContent: "center", paddingHorizontal: 12 },
   wizBtn: { flex: 1, minHeight: 48, borderRadius: 12, backgroundColor: C.primary, alignItems: "center", justifyContent: "center" },
 });
 export { s as petStyles };
